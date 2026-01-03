@@ -73,6 +73,42 @@
 
         // --- Mock Data & Constants ---
         
+        // Student Database from provided documents
+        const studentDatabase = {
+          "2024441674": "AFFIE HAFIZAN KHAN BIN ALIJAN KHAN",
+          "2024442374": "AMIRA SYAHAIREEN BINTI SAHDAN",
+          "2024267258": "ANDRYSHA NYCHELLE ANAK ANDREW",
+          "2024427454": "ARSYAD ZULHUSMI BIN KADAI",
+          "2024298694": "BIJANI ANAK BAKAR",
+          "2024436676": "CASYLVIA ANN ANAK ARMSTRONG",
+          "2024436998": "DEAN DE DVINE JITEK",
+          "2024206888": "DELLIA SUNGGAU ANAK DONNY",
+          "2024670846": "EDIANA ANAK KAMIL",
+          "2024223492": "ESTER AWANG",
+          "2024288588": "FERGUSON QIUN ANAK LUTA",
+          "2024212352": "HANIS YASMIN BINTI HARDYNORHAN",
+          "2024419286": "HASNA NAZIRA BINTI AHMAD ROSALLAN",
+          "2024204868": "HAZEL ANAK RITCHIE",
+          "2024229294": "JAYCARLSON WILSON",
+          "2024206946": "LUQMAN NURHAKIM OMARSHARIFF",
+          "2024419516": "MOHAMAD ZAINORAZIEM BIN ZAINAL",
+          "2024436008": "MOHAMMAD SYAHRIL AZLIE",
+          "2024681454": "MOHD AMIRUL HAFIZ BIN ILAH",
+          "2024282012": "MUHAMAD HAZIM AKMAL BIN JAMAN",
+          "2024411696": "MUHAMMAD AFIQ HAIQAL BIN MOHD ROSDI",
+          "2024645246": "NA'IM ANIQ BIN BASRI",
+          "2024299084": "NUR AYUNI BINTI SEPAWI",
+          "2024244202": "NUR QAMARINA BINTI UZILA",
+          "2024200648": "NUR SYAZA ADRIANA BINTI HASMAN",
+          "2024427272": "NURFARAH AININ SOFIYA BINTI MAJELAN",
+          "2024207026": "NURUL FARAHANA BINTI ABDULLAH",
+          "2024223252": "NURUL FATIHAH",
+          "2024433328": "REBECCA RUDANG ANAK TIMOTHY",
+          "2024604928": "REUBEN JAMES DEALWIS",
+          "2024236022": "SITI ZAHIDAH BINTI MOHD RONIE",
+          "2024696532": "WAHDANIA AYUMIE ANATASYA"
+        };
+
         const ResourceType = {
           PHYSICAL: 'Physical Book',
           EBOOK: 'E-Book',
@@ -217,21 +253,24 @@
         // --- Components ---
 
         const LoginScreen = ({ onLogin }) => {
-            const [studentId, setStudentId] = useState('2024223254');
-            const [password, setPassword] = useState('');
+            const [studentId, setStudentId] = useState('');
             const [error, setError] = useState('');
 
             const handleSubmit = (e) => {
                 e.preventDefault();
-                if (studentId && password) {
+                const trimmedId = studentId.trim();
+                
+                if (trimmedId && studentDatabase[trimmedId]) {
+                    const studentName = studentDatabase[trimmedId];
                     onLogin({
-                        name: 'Nurul Fatihah',
-                        studentId: studentId,
-                        avatarUrl: 'https://picsum.photos/200',
-                        department: 'Faculty of Business & Management'
+                        name: studentName,
+                        studentId: trimmedId,
+                        // Generate avatar with initials
+                        avatarUrl: `https://ui-avatars.com/api/?name=${studentName.replace(/ /g, '+')}&background=random&color=fff`,
+                        department: 'Faculty of Information Management'
                     });
                 } else {
-                    setError('Please enter both ID and Password');
+                    setError('Invalid Student ID. ID not found in the current semester database.');
                 }
             };
 
@@ -256,28 +295,24 @@
                                     <input 
                                         type="text" 
                                         value={studentId}
-                                        onChange={(e) => setStudentId(e.target.value)}
+                                        onChange={(e) => {
+                                            setStudentId(e.target.value);
+                                            setError(''); // Clear error on typing
+                                        }}
                                         className="w-full pl-11 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:bg-black/40 transition-all"
-                                        placeholder="202XXXXXXX"
+                                        placeholder="e.g. 2024441674"
                                     />
                                 </div>
                             </div>
                             
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-3.5 text-gray-400"><i className="fa-solid fa-lock"></i></span>
-                                    <input 
-                                        type="password" 
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pl-11 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:bg-black/40 transition-all"
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-                            </div>
+                            {/* Password field removed as requested */}
 
-                            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                            {error && (
+                                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-200 text-sm text-center">
+                                    <i className="fa-solid fa-circle-exclamation mr-2"></i>
+                                    {error}
+                                </div>
+                            )}
 
                             <button 
                                 type="submit" 
@@ -287,9 +322,12 @@
                             </button>
                         </form>
                         
-                        <p className="mt-8 text-center text-xs text-gray-500">
-                            By signing in, you agree to UiTM Library Terms of Service.
-                        </p>
+                        <div className="mt-8 text-center">
+                             <p className="text-xs text-gray-500 mb-2">Registered Students Only</p>
+                             <div className="text-[10px] text-gray-600 font-mono">
+                                Try: 2024441674 or 2024696532
+                             </div>
+                        </div>
                     </div>
                 </div>
             );
@@ -350,13 +388,16 @@
         };
 
         const Header = ({ user, isOnline, setIsOnline }) => {
+            // Get first name for greeting
+            const firstName = user.name.split(' ')[0];
+            
             return (
                 <header className="h-20 px-4 md:px-6 flex items-center justify-between bg-nexus-dark/60 backdrop-blur-md sticky top-0 z-10 border-b border-nexus-glassBorder">
                     <div className="overflow-hidden">
                         <h1 className="text-xl md:text-2xl font-bold text-white truncate">
-                            Welcome, <span className="text-purple-400">{user.name.split(' ')[0]}</span>
+                            Welcome, <span className="text-purple-400">{firstName}</span>
                         </h1>
-                        <p className="text-xs md:text-sm text-gray-400 truncate hidden sm:block">Bachelor of Information Systems • {user.studentId}</p>
+                        <p className="text-xs md:text-sm text-gray-400 truncate hidden sm:block">{user.department} • {user.studentId}</p>
                     </div>
 
                     <div className="flex items-center gap-3 md:gap-6">
