@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>PTAR Nexus V1 | Library Smart Digital Process</title>
     
     <!-- Tailwind CSS -->
@@ -59,6 +59,7 @@
       body {
         margin: 0;
         overflow: hidden;
+        background-color: #0f172a;
       }
       /* Custom Scrollbar hide */
       .scrollbar-hide::-webkit-scrollbar {
@@ -67,6 +68,11 @@
       .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+      }
+      /* Height fix for mobile browsers */
+      .h-dvh {
+        height: 100vh;
+        height: 100dvh;
       }
     </style>
 </head>
@@ -78,7 +84,7 @@
 
         // --- Mock Data & Constants ---
         
-        // Student Database from provided documents
+        // Student Database
         const studentDatabase = {
           "2024441674": "AFFIE HAFIZAN KHAN BIN ALIJAN KHAN",
           "2024442374": "AMIRA SYAHAIREEN BINTI SAHDAN",
@@ -130,10 +136,7 @@
             HISTORY: 'History & Culture'
         };
 
-        // UiTM Logo URL
-        const UITM_LOGO_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/UiTM_logo.svg/1024px-UiTM_logo.svg.png";
-
-        // Expanded Data with Genres
+        // Expanded Data with Genres and Summaries
         const initialResults = [
             {
               id: '1',
@@ -145,7 +148,8 @@
               shelfLocation: 'Level 2, Aisle 4, Shelf B',
               callNumber: 'HD30.2 .M37 2024',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=1'
+              coverImage: 'https://picsum.photos/150/220?random=1',
+              summary: 'A comprehensive guide on navigating the complexities of digital transformation in modern organizations. This book explores strategic frameworks, leadership roles, and the cultural shifts necessary for successful digitalization in the business sector.'
             },
             {
               id: '2',
@@ -156,7 +160,8 @@
               genre: Genre.FICTION,
               downloadUrl: '#',
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=2'
+              coverImage: 'https://picsum.photos/150/220?random=2',
+              summary: 'A classic American novel that follows the journey of a young boy named Huck Finn and a runaway slave named Jim as they raft down the Mississippi River. The story offers a scathing satire on entrenched attitudes, particularly racism, of the pre-Civil War South.'
             },
             {
               id: '3',
@@ -166,7 +171,8 @@
               type: ResourceType.THESIS,
               genre: Genre.RESEARCH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=3'
+              coverImage: 'https://picsum.photos/150/220?random=3',
+              summary: 'This thesis investigates the transformative role of Artificial Intelligence in academic libraries. It analyzes how AI tools are reshaping cataloging, user services, and research assistance, while also addressing the ethical implications of data privacy.'
             },
             {
               id: '4',
@@ -176,7 +182,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.BUSINESS,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=4'
+              coverImage: 'https://picsum.photos/150/220?random=4',
+              summary: 'An in-depth analysis of methodologies for aligning information systems with business goals. This journal article proposes a new framework for strategic planning that accounts for rapid technological obsolescence and agile business environments.'
             },
             {
               id: '5',
@@ -188,7 +195,8 @@
               shelfLocation: 'Level 3, Aisle 1, Shelf A',
               callNumber: 'QA76.76 .C65 M37',
               availability: 'On Loan',
-              coverImage: 'https://picsum.photos/150/220?random=5'
+              coverImage: 'https://picsum.photos/150/220?random=5',
+              summary: 'A must-read for software developers, this book presents best practices for writing clean, maintainable, and readable code. It covers principles such as meaningful naming, function structure, and error handling to improve software quality.'
             },
             {
               id: '6',
@@ -198,7 +206,8 @@
               type: ResourceType.EBOOK,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=6'
+              coverImage: 'https://picsum.photos/150/220?random=6',
+              summary: 'The standard textbook for algorithms, covering a broad range of algorithms in depth. It makes their design and analysis accessible to all levels of readers, with self-contained chapters and pseudocode that is easy to understand.'
             },
             {
               id: '7',
@@ -208,7 +217,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=7'
+              coverImage: 'https://picsum.photos/150/220?random=7',
+              summary: 'This paper explores current trends in mobile UX design, focusing on gesture-based interactions, dark mode implementation, and accessibility standards for diverse user bases in the smartphone era.'
             },
             {
               id: '8',
@@ -218,7 +228,8 @@
               type: ResourceType.THESIS,
               genre: Genre.SCIENCE,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=8'
+              coverImage: 'https://picsum.photos/150/220?random=8',
+              summary: 'A research study on passive cooling techniques and sustainable material usage in tropical climates. The thesis provides case studies of energy-efficient buildings in Southeast Asia and proposes new guidelines for green construction.'
             },
             {
               id: '9',
@@ -230,7 +241,8 @@
               shelfLocation: 'Level 2, Aisle 10, Shelf D',
               callNumber: 'QA76.76 .O63 T36',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=9'
+              coverImage: 'https://picsum.photos/150/220?random=9',
+              summary: 'A detailed look at operating system concepts, including processes, memory management, file systems, and security. This edition includes coverage of the latest developments in cloud computing and virtualization.'
             },
             {
               id: '10',
@@ -240,7 +252,8 @@
               type: ResourceType.EBOOK,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=10'
+              coverImage: 'https://picsum.photos/150/220?random=10',
+              summary: 'The definitive textbook on deep learning, covering mathematical foundations, machine learning best practices, and applications in speech recognition, computer vision, and natural language processing.'
             },
             {
               id: '11',
@@ -252,7 +265,8 @@
               shelfLocation: 'Level 1, Aisle 2, Shelf F',
               callNumber: 'HC445.5 .J66 2020',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=11'
+              coverImage: 'https://picsum.photos/150/220?random=11',
+              summary: 'An economic analysis of Malaysia\'s development journey. The book examines historical policies, the impact of globalization, and future economic challenges facing the nation in a post-2020 landscape.'
             },
             {
               id: '12',
@@ -262,7 +276,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=12'
+              coverImage: 'https://picsum.photos/150/220?random=12',
+              summary: 'A special report on the emerging threats in the cyber landscape for 2024. Topics include AI-driven phishing attacks, quantum cryptography vulnerabilities, and the rise of ransomware-as-a-service.'
             },
             {
               id: '13',
@@ -272,7 +287,8 @@
               type: ResourceType.EBOOK,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=13'
+              coverImage: 'https://picsum.photos/150/220?random=13',
+              summary: 'This classic guide offers practical advice on software development, covering topics such as fighting software rot, avoiding duplication, writing flexible code, and effective testing strategies.'
             },
             {
               id: '14',
@@ -284,7 +300,8 @@
               shelfLocation: 'Level 4, Aisle 12',
               callNumber: 'Q335 .R86 2020',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=14'
+              coverImage: 'https://picsum.photos/150/220?random=14',
+              summary: 'The leading textbook in AI, providing a comprehensive overview of the field. It covers everything from problem-solving and knowledge representation to machine learning and robotics.'
             },
             {
               id: '15',
@@ -294,7 +311,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.SCIENCE,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=15'
+              coverImage: 'https://picsum.photos/150/220?random=15',
+              summary: 'The latest issue of Nature, featuring groundbreaking research in genetics, climate change modeling, and astrophysics. Includes peer-reviewed articles and commentary from leading scientists.'
             },
             {
               id: '16',
@@ -306,7 +324,8 @@
               shelfLocation: 'Level 3, Aisle 5',
               callNumber: 'QA76.64 .D47 1994',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=16'
+              coverImage: 'https://picsum.photos/150/220?random=16',
+              summary: 'A seminal book cataloging 23 classic software design patterns. It provides solutions to common problems in software design, helping developers create more flexible, elegant, and reusable object-oriented software.'
             },
             {
               id: '17',
@@ -316,7 +335,8 @@
               type: ResourceType.THESIS,
               genre: Genre.RESEARCH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=17'
+              coverImage: 'https://picsum.photos/150/220?random=17',
+              summary: 'This thesis evaluates the adoption of cloud computing in government agencies. It proposes a hybrid cloud architecture to balance data sovereignty requirements with the scalability benefits of public clouds.'
             },
             {
               id: '18',
@@ -326,7 +346,8 @@
               type: ResourceType.EBOOK,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=18'
+              coverImage: 'https://picsum.photos/150/220?random=18',
+              summary: 'An accessible introduction to quantum computing. The book explains the basic principles of qubits, entanglement, and quantum algorithms without requiring advanced mathematics.'
             },
             {
               id: '19',
@@ -336,7 +357,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.BUSINESS,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=19'
+              coverImage: 'https://picsum.photos/150/220?random=19',
+              summary: 'The premier magazine for management professionals. This issue focuses on leadership in the era of hybrid work, sustainable business practices, and navigating global economic uncertainty.'
             },
             {
               id: '20',
@@ -348,7 +370,8 @@
               shelfLocation: 'Level 1, Fiction Section',
               callNumber: 'PR6068 .O93 H37',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=20'
+              coverImage: 'https://picsum.photos/150/220?random=20',
+              summary: 'The first novel in the Harry Potter series. It introduces Harry, a young wizard who discovers his magical heritage and attends Hogwarts School of Witchcraft and Wizardry, where he makes friends and faces the dark wizard Voldemort.'
             },
             {
               id: '21',
@@ -358,7 +381,8 @@
               type: ResourceType.JOURNAL,
               genre: Genre.TECH,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=21'
+              coverImage: 'https://picsum.photos/150/220?random=21',
+              summary: 'A monthly peer-reviewed scientific journal publishing research on the specification, design, development, and maintenance of software systems.'
             },
             // Additional Books
             {
@@ -369,7 +393,8 @@
               type: ResourceType.EBOOK,
               genre: Genre.HISTORY,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=22'
+              coverImage: 'https://picsum.photos/150/220?random=22',
+              summary: 'A thought-provoking survey of the history of our species, Homo sapiens. Harari explores how biology and history have defined us and enhanced our understanding of what it means to be human.'
             },
             {
               id: '23',
@@ -381,7 +406,8 @@
               shelfLocation: 'Level 1, Fiction Section',
               callNumber: 'PS3511.I9 G7',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=23'
+              coverImage: 'https://picsum.photos/150/220?random=23',
+              summary: 'A novel set in the Jazz Age on Long Island. It tells the story of the mysterious millionaire Jay Gatsby and his obsession with the beautiful former debutante Daisy Buchanan, exploring themes of decadence and idealism.'
             },
             {
               id: '24',
@@ -393,7 +419,8 @@
               shelfLocation: 'Level 2, Business',
               callNumber: 'HD30.28 .K56 2005',
               availability: 'Available',
-              coverImage: 'https://picsum.photos/150/220?random=24'
+              coverImage: 'https://picsum.photos/150/220?random=24',
+              summary: 'A marketing theory that suggests companies are better off searching for ways to gain "uncontested market space" (Blue Oceans) rather than competing with similar companies in existing markets (Red Oceans).'
             },
              {
               id: '25',
@@ -403,7 +430,8 @@
               type: ResourceType.THESIS,
               genre: Genre.HISTORY,
               availability: 'Digital Access',
-              coverImage: 'https://picsum.photos/150/220?random=25'
+              coverImage: 'https://picsum.photos/150/220?random=25',
+              summary: 'A philological and historical analysis of ancient Malay manuscripts preserved in the national archives. The thesis focuses on the evolution of the Jawi script and the cultural contexts of the 18th century.'
             }
         ];
 
@@ -438,7 +466,7 @@
                         studentId: trimmedId,
                         // Generate avatar with initials
                         avatarUrl: `https://ui-avatars.com/api/?name=${studentName.replace(/ /g, '+')}&background=random&color=fff`,
-                        department: 'Faculty of Information Management'
+                        department: 'Faculty of Business Management'
                     });
                 } else {
                     setError('Invalid Student ID. ID not found in the current semester database.');
@@ -446,19 +474,18 @@
             };
 
             return (
-                <div className="flex h-screen w-full items-center justify-center bg-nexus-dark bg-[url('https://images.unsplash.com/photo-1507842217121-9e962835bf0e?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
+                <div className="flex h-dvh w-full items-center justify-center bg-nexus-dark bg-[url('https://images.unsplash.com/photo-1507842217121-9e962835bf0e?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center overflow-hidden">
                     <div className="absolute inset-0 bg-nexus-dark/80 backdrop-blur-sm"></div>
                     
-                    <div className="relative z-10 w-full max-w-sm md:max-w-md p-6 md:p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl animate-fade-in-up mx-4">
+                    <div className="relative z-10 w-full max-w-[90%] md:max-w-md p-6 md:p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl animate-fade-in mx-auto">
                         <div className="flex flex-col items-center mb-8">
                             <div className="flex items-center gap-4 mb-4">
-                                <img src={UITM_LOGO_URL} alt="UiTM Logo" className="h-16 w-auto object-contain" />
                                 <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                                     <i className="fa-solid fa-layer-group text-white text-2xl md:text-3xl"></i>
                                 </div>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">PTAR <span className="text-purple-400">NEXUS</span></h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">Sign in to your digital library</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide text-center">PTAR <span className="text-purple-400">NEXUS</span></h1>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base text-center">Sign in to your digital library</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -516,9 +543,8 @@
 
             return (
                 <aside className="w-16 md:w-20 lg:w-64 h-full flex flex-col transition-all duration-300 bg-nexus-dark/80 backdrop-blur-xl border-r border-nexus-glassBorder z-20 flex-shrink-0">
-                    <div className="h-24 flex flex-col lg:flex-row items-center justify-center lg:justify-start lg:px-6 border-b border-nexus-glassBorder gap-2">
+                    <div className="h-20 md:h-24 flex flex-col lg:flex-row items-center justify-center lg:justify-start lg:px-6 border-b border-nexus-glassBorder gap-2">
                         <div className="flex items-center gap-2">
-                             <img src={UITM_LOGO_URL} alt="UiTM" className="h-8 w-auto md:h-10 object-contain" />
                             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0">
                                 <i className="fa-solid fa-layer-group text-white text-lg md:text-xl"></i>
                             </div>
@@ -528,7 +554,7 @@
                         </span>
                     </div>
 
-                    <nav className="flex-1 py-6 flex flex-col gap-2 px-2 md:px-3">
+                    <nav className="flex-1 py-4 md:py-6 flex flex-col gap-2 px-2 md:px-3 overflow-y-auto scrollbar-hide">
                         {menuItems.map((item) => (
                             <button
                                 key={item.id}
@@ -560,13 +586,13 @@
 
         const Header = ({ user, isOnline, setIsOnline, notifications }) => {
             const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-            const fullName = user.name; // Uses Full Name as requested
+            const fullName = user.name; 
             const unreadCount = notifications.length;
 
             return (
-                <header className="h-20 px-4 md:px-6 flex items-center justify-between bg-nexus-dark/60 backdrop-blur-md sticky top-0 z-10 border-b border-nexus-glassBorder">
+                <header className="h-16 md:h-20 px-4 md:px-6 flex items-center justify-between bg-nexus-dark/60 backdrop-blur-md sticky top-0 z-10 border-b border-nexus-glassBorder flex-shrink-0">
                     <div className="overflow-hidden mr-4">
-                        <h1 className="text-lg md:text-xl font-bold text-white truncate">
+                        <h1 className="text-base md:text-xl font-bold text-white truncate">
                             Hi, <span className="text-purple-400">{fullName}</span>
                         </h1>
                         <p className="text-[10px] md:text-sm text-gray-400 truncate hidden sm:block">{user.department}</p>
@@ -582,7 +608,7 @@
                             }`}
                         >
                             <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
-                            <span className="text-[10px] md:text-sm font-semibold hidden md:inline">{isOnline ? 'System Online' : 'Offline'}</span>
+                            <span className="text-[10px] md:text-sm font-semibold hidden md:inline">{isOnline ? 'Online' : 'Offline'}</span>
                         </div>
 
                         <div className="flex items-center gap-3 pl-3 md:pl-6 border-l border-nexus-glassBorder relative">
@@ -599,7 +625,7 @@
                             
                             {/* Dropdown */}
                             {showNotifDropdown && (
-                                <div className="absolute top-12 right-12 w-72 bg-slate-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                                <div className="absolute top-12 right-2 md:right-12 w-72 bg-slate-800 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
                                     <div className="px-4 py-3 border-b border-white/10 bg-slate-900/50">
                                         <h4 className="text-sm font-semibold text-white">Notifications</h4>
                                     </div>
@@ -629,9 +655,67 @@
             );
         };
 
+        const BookDetailModal = ({ book, onClose, onToggleBorrow, isBorrowed }) => {
+            if (!book) return null;
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90dvh] shadow-2xl flex flex-col md:flex-row overflow-hidden animate-fade-in">
+                        {/* Close Button */}
+                        <button onClick={onClose} className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-white/20 transition-colors">
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+
+                        {/* Image Section */}
+                        <div className="w-full md:w-1/3 h-48 md:h-auto relative flex-shrink-0">
+                            <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent md:hidden"></div>
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="p-6 md:p-8 flex-1 flex flex-col min-h-0">
+                            <div className="mb-4">
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                     <span className="px-2 py-1 rounded text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">{book.type}</span>
+                                     <span className="px-2 py-1 rounded text-xs font-bold bg-white/10 text-gray-300 border border-white/10">{book.genre}</span>
+                                </div>
+                                <h2 className="text-xl md:text-2xl font-bold text-white leading-tight mb-1">{book.title}</h2>
+                                <p className="text-base text-gray-400">by <span className="text-gray-200">{book.author}</span> <span className="text-gray-600 mx-1">•</span> Published: <span className="text-gray-200">{book.year}</span></p>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto mb-6 pr-2 scrollbar-hide">
+                                <h3 className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Summary</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed">{book.summary}</p>
+                            </div>
+
+                            <div className="flex gap-3 mt-auto pt-4 border-t border-white/5">
+                                 {/* Action Buttons based on type */}
+                                 {book.type === ResourceType.PHYSICAL ? (
+                                     <button
+                                        onClick={() => onToggleBorrow(book)}
+                                        className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2 ${isBorrowed ? 'bg-red-500/20 hover:bg-red-500 hover:text-white text-red-300 border border-red-500/50' : 'bg-green-500/20 hover:bg-green-500 hover:text-black text-green-300 border border-green-500/50'}`}
+                                     >
+                                        <i className={`fa-solid ${isBorrowed ? 'fa-rotate-left' : 'fa-book-open'}`}></i>
+                                        {isBorrowed ? 'Return Book' : 'Borrow Book'}
+                                     </button>
+                                 ) : (
+                                     <button className="flex-1 py-3 px-4 rounded-xl font-bold bg-cyan-500/20 hover:bg-cyan-500 hover:text-black text-cyan-300 border border-cyan-500/50 transition-all text-sm flex items-center justify-center gap-2">
+                                        <i className="fa-regular fa-file-pdf"></i>
+                                        Download PDF
+                                     </button>
+                                 )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        };
+
         const UnifiedSearch = ({ borrowedBooks, onToggleBorrow }) => {
             const [query, setQuery] = useState('');
             const [activeType, setActiveType] = useState('ALL'); // ALL, PHYSICAL, EBOOK, THESIS, JOURNAL
+            const [selectedBook, setSelectedBook] = useState(null);
             
             // Filter logic
             const filteredResults = initialResults.filter(item => {
@@ -658,52 +742,53 @@
                 });
             }
 
-            const ResultCard = ({ result }) => {
+            const ResultCard = ({ result, onBookClick }) => {
                 const isBorrowed = borrowedBooks.has(result.id);
                 return (
                     <div 
-                        className="flex bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group h-full"
+                        className="flex flex-row bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group h-full cursor-pointer relative"
+                        onClick={() => onBookClick(result)}
                     >
-                        <div className="w-24 md:w-32 h-auto flex-shrink-0 overflow-hidden relative">
+                        <div className="w-24 md:w-32 flex-shrink-0 relative">
                             <img 
                                 src={result.coverImage} 
                                 alt={result.title} 
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                className="w-full h-full object-cover"
                             />
                             <div className="absolute top-2 left-2 flex flex-col gap-1">
                                 {result.type === ResourceType.PHYSICAL && (
-                                    <span className="px-2 py-1 bg-amber-500/90 text-black text-[10px] font-bold rounded shadow-md">Physical</span>
+                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-amber-500/90 text-black text-[9px] md:text-[10px] font-bold rounded shadow-md">Physical</span>
                                 )}
                                 {result.type === ResourceType.EBOOK && (
-                                    <span className="px-2 py-1 bg-purple-500/90 text-white text-[10px] font-bold rounded shadow-md">E-Book</span>
+                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-purple-500/90 text-white text-[9px] md:text-[10px] font-bold rounded shadow-md">E-Book</span>
                                 )}
                                 {result.type === ResourceType.THESIS && (
-                                    <span className="px-2 py-1 bg-blue-500/90 text-white text-[10px] font-bold rounded shadow-md">Thesis</span>
+                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-blue-500/90 text-white text-[9px] md:text-[10px] font-bold rounded shadow-md">Thesis</span>
                                 )}
                                 {result.type === ResourceType.JOURNAL && (
-                                    <span className="px-2 py-1 bg-emerald-500/90 text-white text-[10px] font-bold rounded shadow-md">Journal</span>
+                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-emerald-500/90 text-white text-[9px] md:text-[10px] font-bold rounded shadow-md">Journal</span>
                                 )}
                             </div>
                         </div>
                         
                         <div className="p-3 md:p-4 flex flex-col justify-between flex-1 min-w-0">
                             <div>
-                                <div className="text-[10px] text-purple-300 uppercase font-bold tracking-wider mb-1">{result.genre}</div>
-                                <h4 className="text-white font-bold text-sm md:text-base leading-tight mb-1 line-clamp-2">{result.title}</h4>
+                                <div className="text-[9px] md:text-[10px] text-purple-300 uppercase font-bold tracking-wider mb-1 truncate">{result.genre}</div>
+                                <h4 className="text-white font-bold text-sm md:text-base leading-tight mb-1 line-clamp-2 group-hover:text-purple-300 transition-colors">{result.title}</h4>
                                 <p className="text-gray-400 text-xs mb-2 truncate">{result.author} • {result.year}</p>
                                 
                                 {result.type === ResourceType.PHYSICAL ? (
                                     <div className="flex items-start gap-2 text-xs text-gray-300 bg-white/5 p-2 rounded-lg">
-                                        <i className="fa-solid fa-location-dot mt-1 text-amber-400"></i>
-                                        <div className="overflow-hidden">
+                                        <i className="fa-solid fa-location-dot mt-0.5 text-amber-400 flex-shrink-0"></i>
+                                        <div className="overflow-hidden min-w-0">
                                             <p className="font-medium text-amber-200 truncate">{result.shelfLocation}</p>
                                             <p className="text-[10px] opacity-70 truncate">Call No: {result.callNumber}</p>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 text-xs text-gray-300 bg-white/5 p-2 rounded-lg">
-                                        <i className="fa-solid fa-cloud-arrow-down text-cyan-400"></i>
-                                        <p className="font-medium text-cyan-200">Instant Access</p>
+                                        <i className="fa-solid fa-cloud-arrow-down text-cyan-400 flex-shrink-0"></i>
+                                        <p className="font-medium text-cyan-200 truncate">Instant Access</p>
                                     </div>
                                 )}
                             </div>
@@ -711,8 +796,11 @@
                             <div className="mt-3 flex gap-2">
                                 {result.type === ResourceType.PHYSICAL ? (
                                     <button 
-                                        onClick={() => onToggleBorrow(result)}
-                                        className={`flex-1 py-1.5 px-3 border rounded-lg text-xs font-medium transition-all ${
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent opening modal when clicking action button
+                                            onToggleBorrow(result);
+                                        }}
+                                        className={`flex-1 py-1.5 px-2 md:px-3 border rounded-lg text-[10px] md:text-xs font-medium transition-all whitespace-nowrap ${
                                             isBorrowed 
                                                 ? 'bg-red-500/20 hover:bg-red-500 hover:text-white border-red-500/50 text-red-300' 
                                                 : 'bg-white/10 hover:bg-green-500 hover:text-black border-white/20 text-white'
@@ -721,7 +809,12 @@
                                         {isBorrowed ? 'Return' : 'Borrow'}
                                     </button>
                                 ) : (
-                                    <button className="flex-1 py-1.5 px-3 bg-cyan-600/20 hover:bg-cyan-500 hover:text-black border border-cyan-500/50 text-cyan-300 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                        }}
+                                        className="flex-1 py-1.5 px-2 md:px-3 bg-cyan-600/20 hover:bg-cyan-500 hover:text-black border border-cyan-500/50 text-cyan-300 rounded-lg text-[10px] md:text-xs font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                                    >
                                             <i className="fa-regular fa-file-pdf"></i> Download
                                     </button>
                                 )}
@@ -743,16 +836,16 @@
             ];
 
             return (
-                <div className="w-full max-w-6xl mx-auto">
+                <div className="w-full max-w-6xl mx-auto relative">
                     {/* Search & Filter Section */}
                     <div className="mb-6 md:mb-8">
-                        <div className="relative mb-6">
+                        <div className="relative mb-4 md:mb-6">
                             <div className="absolute inset-y-0 left-0 pl-4 md:pl-6 flex items-center pointer-events-none">
-                                <i className="fa-brands fa-google text-xl text-gray-400"></i>
+                                <i className="fa-brands fa-google text-lg md:text-xl text-gray-400"></i>
                             </div>
                             <input
                                 type="text"
-                                className="block w-full pl-12 md:pl-16 pr-6 py-3 md:py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white/10 transition-all shadow-xl"
+                                className="block w-full pl-10 md:pl-16 pr-4 py-3 md:py-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-sm md:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white/10 transition-all shadow-xl"
                                 placeholder="Search by Title, Author, or Keyword..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
@@ -760,12 +853,12 @@
                         </div>
 
                         {/* Filter Tabs */}
-                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2 md:mx-0 md:px-0">
                             {filters.map(filter => (
                                 <button
                                     key={filter.id}
                                     onClick={() => setActiveType(filter.id)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                                    className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                                         activeType === filter.id 
                                         ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' 
                                         : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
@@ -780,15 +873,15 @@
                     {/* Results Display */}
                     {activeType === 'ALL' && !query ? (
                         // Categorized View (Genres)
-                        <div className="space-y-8">
+                        <div className="space-y-6 md:space-y-8">
                             {Object.entries(groupedResults).map(([genreName, items]) => (
                                 <div key={genreName} className="animate-fade-in">
-                                    <h3 className="text-white/90 font-bold text-lg mb-4 flex items-center gap-2 border-l-4 border-purple-500 pl-3">
-                                        {genreName} <span className="text-gray-500 text-sm font-normal">({items.length})</span>
+                                    <h3 className="text-white/90 font-bold text-base md:text-lg mb-3 md:mb-4 flex items-center gap-2 border-l-4 border-purple-500 pl-3">
+                                        {genreName} <span className="text-gray-500 text-xs md:text-sm font-normal">({items.length})</span>
                                     </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-4">
                                         {items.map(item => (
-                                            <ResultCard key={item.id} result={item} />
+                                            <ResultCard key={item.id} result={item} onBookClick={setSelectedBook} />
                                         ))}
                                     </div>
                                 </div>
@@ -801,9 +894,9 @@
                                 <i className="fa-solid fa-layer-group mr-2"></i> 
                                 {query ? `Search Results for "${query}"` : `${filters.find(f => f.id === activeType).label}`} ({filteredResults.length})
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
                                 {filteredResults.map((result) => (
-                                    <ResultCard key={result.id} result={result} />
+                                    <ResultCard key={result.id} result={result} onBookClick={setSelectedBook} />
                                 ))}
                             </div>
                             {filteredResults.length === 0 && (
@@ -814,6 +907,14 @@
                             )}
                         </div>
                     )}
+
+                    {/* Modal */}
+                    <BookDetailModal 
+                        book={selectedBook} 
+                        onClose={() => setSelectedBook(null)} 
+                        onToggleBorrow={onToggleBorrow}
+                        isBorrowed={selectedBook ? borrowedBooks.has(selectedBook.id) : false}
+                    />
                 </div>
             );
         };
@@ -835,7 +936,7 @@
             };
 
             return (
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col items-center shadow-xl relative overflow-hidden group h-full">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 flex flex-col items-center shadow-xl relative overflow-hidden group h-full">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
                     
                     <div className="w-full flex justify-between items-center mb-4">
@@ -891,7 +992,7 @@
 
         const RoomBooking = () => {
             return (
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl h-full">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 shadow-xl h-full">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-white font-semibold flex items-center gap-2 text-sm md:text-base">
                             <i className="fa-solid fa-people-roof text-pink-400"></i> Smart Booking
@@ -905,7 +1006,7 @@
                                 key={room.id} 
                                 className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors"
                             >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
                                     <div className={`w-3 h-3 rounded-full shadow-lg flex-shrink-0 ${
                                         room.status === 'Available' ? 'bg-green-500 shadow-green-500/50' : 
                                         room.status === 'Occupied' ? 'bg-red-500 shadow-red-500/50' : 'bg-gray-500'
@@ -917,13 +1018,13 @@
                                 </div>
 
                                 {room.status === 'Available' ? (
-                                    <button className="px-2 py-1 md:px-3 md:py-1.5 bg-green-500/20 text-green-300 border border-green-500/30 rounded-lg text-xs font-semibold hover:bg-green-500 hover:text-black transition-all whitespace-nowrap">
+                                    <button className="px-2 py-1 md:px-3 md:py-1.5 bg-green-500/20 text-green-300 border border-green-500/30 rounded-lg text-[10px] md:text-xs font-semibold hover:bg-green-500 hover:text-black transition-all whitespace-nowrap ml-2">
                                         Book
                                     </button>
                                 ) : room.status === 'Occupied' ? (
-                                    <span className="text-[10px] md:text-xs text-red-400 font-medium whitespace-nowrap">Until {room.nextAvailable}</span>
+                                    <span className="text-[10px] md:text-xs text-red-400 font-medium whitespace-nowrap ml-2">Until {room.nextAvailable}</span>
                                 ) : (
-                                    <span className="text-[10px] md:text-xs text-gray-500 font-medium">Closed</span>
+                                    <span className="text-[10px] md:text-xs text-gray-500 font-medium ml-2">Closed</span>
                                 )}
                             </div>
                         ))}
@@ -948,7 +1049,7 @@
             const maxVal = Math.max(...data.map(d => d.value));
 
             return (
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-xl h-full flex flex-col">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 shadow-xl h-full flex flex-col">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-white font-semibold flex items-center gap-2 text-sm md:text-base">
                             <i className="fa-solid fa-chart-pie text-cyan-400"></i> Live Analytics
@@ -962,21 +1063,21 @@
                         </div>
                     </div>
 
-                    <div className="flex-1 w-full flex items-end justify-between gap-4 mt-4 px-2">
+                    <div className="flex-1 w-full flex items-end justify-between gap-2 md:gap-4 mt-4 px-1 md:px-2">
                         {data.map((item, index) => {
                             const heightPercentage = (item.value / (maxVal * 1.2)) * 100;
                             return (
                                 <div key={index} className="flex flex-col items-center flex-1 group">
-                                    <div className="relative w-full flex justify-center h-32 md:h-40 items-end">
+                                    <div className="relative w-full flex justify-center h-28 md:h-40 items-end">
                                         <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] px-2 py-1 rounded pointer-events-none whitespace-nowrap border border-white/10 z-10">
                                             {item.value} books
                                         </div>
                                         <div 
-                                            className={`w-full max-w-[30px] md:max-w-[40px] rounded-t-lg transition-all duration-700 ease-out ${item.color} opacity-80 group-hover:opacity-100`}
+                                            className={`w-full max-w-[20px] md:max-w-[40px] rounded-t-lg transition-all duration-700 ease-out ${item.color} opacity-80 group-hover:opacity-100`}
                                             style={{ height: `${heightPercentage}%`, minHeight: '4px' }}
                                         ></div>
                                     </div>
-                                    <span className="text-[10px] md:text-xs text-gray-400 mt-2 font-medium truncate w-full text-center">{item.name}</span>
+                                    <span className="text-[9px] md:text-xs text-gray-400 mt-2 font-medium truncate w-full text-center">{item.name}</span>
                                 </div>
                             );
                         })}
@@ -1037,7 +1138,7 @@
             }
 
             return (
-                <div className="flex h-screen bg-nexus-dark text-white font-sans overflow-hidden bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center">
+                <div className="flex h-dvh bg-nexus-dark text-white font-sans overflow-hidden bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center">
                     <div className="absolute inset-0 bg-nexus-dark/90 z-0"></div>
                     <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/30 to-blue-900/30 z-0 pointer-events-none"></div>
 
@@ -1053,7 +1154,7 @@
                                 notifications={notifications}
                             />
 
-                            <div className="flex-1 overflow-y-auto p-2 md:p-6 scrollbar-hide">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide">
                                 {!isOnline && (
                                     <div className="w-full bg-red-500/20 border border-red-500/40 text-red-100 p-3 rounded-xl mb-4 flex items-center gap-3 animate-pulse text-sm">
                                         <i className="fa-solid fa-triangle-exclamation"></i>
@@ -1062,8 +1163,8 @@
                                 )}
 
                                 {activeTab === 'dashboard' && (
-                                    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
-                                        <div className="w-full px-2 md:px-0">
+                                    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-10">
+                                        <div className="w-full">
                                             <div className="mb-2">
                                                 <h2 className="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Unified Search</h2>
                                                 <p className="text-gray-400 text-xs md:text-base">Access all library resources simultaneously.</p>
@@ -1071,7 +1172,7 @@
                                             <UnifiedSearch borrowedBooks={borrowedBooks} onToggleBorrow={toggleBorrow} />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 pb-10 px-2 md:px-0">
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
                                             <div className="md:col-span-5 lg:col-span-3">
                                                 <DigitalID user={user} />
                                             </div>
@@ -1087,19 +1188,19 @@
                                     </div>
                                 )}
 
-                                {activeTab === 'search' && <div className="px-2 md:px-0"><UnifiedSearch borrowedBooks={borrowedBooks} onToggleBorrow={toggleBorrow} /></div>}
+                                {activeTab === 'search' && <div className="pb-10"><UnifiedSearch borrowedBooks={borrowedBooks} onToggleBorrow={toggleBorrow} /></div>}
                                 {activeTab === 'rooms' && (
-                                    <div className="max-w-4xl mx-auto h-full px-2 md:px-0">
+                                    <div className="max-w-4xl mx-auto h-full pb-10">
                                         <RoomBooking />
                                     </div>
                                 )}
                                 {activeTab === 'digital-id' && (
-                                    <div className="max-w-md mx-auto mt-10 md:mt-20 h-96 px-2 md:px-0">
+                                    <div className="max-w-md mx-auto mt-10 md:mt-20 h-96 pb-10">
                                         <DigitalID user={user} />
                                     </div>
                                 )}
                                 {activeTab === 'analytics' && (
-                                    <div className="max-w-4xl mx-auto h-[400px] mt-10 px-2 md:px-0">
+                                    <div className="max-w-4xl mx-auto h-[400px] mt-10 pb-10">
                                         <Analytics />
                                     </div>
                                 )}
