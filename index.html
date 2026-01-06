@@ -89,6 +89,22 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
+        // --- Utils ---
+        const getMalaysiaTime = () => {
+             return new Date().toLocaleTimeString('en-MY', {
+                 timeZone: 'Asia/Kuala_Lumpur',
+                 hour: '2-digit',
+                 minute: '2-digit',
+                 hour12: true
+             });
+        };
+
+        const getMalaysiaDate = () => {
+             return new Date().toLocaleDateString('en-MY', {
+                 timeZone: 'Asia/Kuala_Lumpur'
+             });
+        };
+
         // --- Mock Data & Constants ---
         
         // Student Database
@@ -227,8 +243,7 @@
             }
         ];
 
-        // Local PTAR Digital Resources (Actual Content)
-        // Direct links to actual databases as requested
+        // Local PTAR Digital Resources
         const localDigitalInventory = [
             {
                 id: 'db_1',
@@ -328,13 +343,6 @@
             }
         ];
 
-        const roomData = [
-            { id: '1', name: 'Discussion Room 1', capacity: 4, status: 'Occupied', nextAvailable: '14:00 PM' },
-            { id: '2', name: 'Discussion Room 2', capacity: 6, status: 'Available' },
-            { id: '3', name: 'Quiet Pod A', capacity: 1, status: 'Available' },
-            { id: '4', name: 'Media Room', capacity: 10, status: 'Maintenance' },
-        ];
-
         const initialAnalyticsData = [
             { name: 'Sci-Fi', value: 400, color: 'bg-purple-500' },
             { name: 'History', value: 300, color: 'bg-green-400' },
@@ -353,8 +361,6 @@
             ]);
             const [isTyping, setIsTyping] = useState(false);
             const messagesEndRef = useRef(null);
-
-            // NexusBot Avatar URL (Cute Robot)
             const botAvatar = "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=NexusBot&backgroundColor=b6e3f4&eyes=bulging&mouth=smile01";
 
             const scrollToBottom = () => {
@@ -365,7 +371,6 @@
                 scrollToBottom();
             }, [messages, isOpen]);
 
-            // Simple Pattern Matching Logic (Simulated AI)
             const generateResponse = (text) => {
                 const lower = text.toLowerCase();
                 if (lower.includes('hour') || lower.includes('open') || lower.includes('time')) {
@@ -394,7 +399,6 @@
                 setInput('');
                 setIsTyping(true);
 
-                // Simulate processing delay
                 setTimeout(() => {
                     const responseText = generateResponse(userMsg.text);
                     const botMsg = { id: Date.now() + 1, text: responseText, sender: 'bot' };
@@ -405,10 +409,8 @@
 
             return (
                 <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-                    {/* Chat Window */}
                     {isOpen && (
                         <div className="mb-4 w-80 md:w-96 bg-slate-900 border border-white/20 rounded-2xl shadow-2xl overflow-hidden animate-slide-up flex flex-col h-[500px]">
-                            {/* Header */}
                             <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-4 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-2 border-white/30">
@@ -426,12 +428,10 @@
                                 </button>
                             </div>
 
-                            {/* Messages Area */}
                             <div className="flex-1 bg-nexus-dark/50 p-4 overflow-y-auto scrollbar-hide flex flex-col gap-3">
                                 {messages.map((msg) => (
                                     <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`max-w-[80%] flex items-end gap-2 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                            {/* Avatar for Bot */}
                                             {msg.sender === 'bot' && (
                                                 <img src={botAvatar} className="w-6 h-6 rounded-full mb-1" alt="Bot" />
                                             )}
@@ -459,7 +459,6 @@
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Input Area */}
                             <form onSubmit={handleSend} className="p-3 bg-slate-800 border-t border-white/10 flex gap-2">
                                 <input
                                     type="text"
@@ -475,7 +474,6 @@
                         </div>
                     )}
 
-                    {/* Toggle Button */}
                     <button 
                         onClick={() => setIsOpen(!isOpen)}
                         className={`w-16 h-16 rounded-full shadow-lg shadow-cyan-600/30 flex items-center justify-center transition-all hover:scale-110 overflow-hidden border-2 border-white/20 ${isOpen ? 'bg-red-500 rotate-90' : 'bg-gradient-to-r from-cyan-600 to-blue-500 animate-bounce-slow'}`}
@@ -496,34 +494,56 @@
             const [selectedTime, setSelectedTime] = useState(null);
             const [purpose, setPurpose] = useState('Discussion');
             
-            // Generate Time Slots (09:00 - 17:00)
-            const timeSlots = [
+            // Available Time Slots
+            const allTimeSlots = [
                 '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', 
                 '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
             ];
-
-            // Simulate occupied slots randomly when date changes
+            
+            const [availableSlots, setAvailableSlots] = useState([]);
             const [occupiedSlots, setOccupiedSlots] = useState([]);
 
             useEffect(() => {
                 if (isOpen) {
-                    // Reset
                     setSelectedTime(null);
-                    // Randomly occupy slots
-                    const occupied = timeSlots.filter(() => Math.random() > 0.7);
-                    setOccupiedSlots(occupied);
-                    
                     // Default to today
                     const today = new Date().toISOString().split('T')[0];
                     setSelectedDate(today);
                 }
             }, [isOpen]);
 
+            // Filter slots based on Real-time
+            useEffect(() => {
+                if (!selectedDate) return;
+
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                const currentHour = now.getHours();
+
+                // If selected date is today, filter out past hours
+                let filteredSlots = allTimeSlots;
+                if (selectedDate === todayStr) {
+                    filteredSlots = allTimeSlots.filter(slot => {
+                        let slotHour = parseInt(slot.split(':')[0]);
+                        if (slot.includes('PM') && slotHour !== 12) slotHour += 12;
+                        if (slot.includes('AM') && slotHour === 12) slotHour = 0; // midnight edge case, not in list though
+                        return slotHour > currentHour;
+                    });
+                }
+
+                setAvailableSlots(filteredSlots);
+                
+                // Randomly occupy some of the remaining slots to simulate other students
+                // Seed random based on date string so it doesn't flicker
+                const seed = selectedDate.split('-').reduce((a,c) => a+parseInt(c), 0);
+                const randomOccupied = filteredSlots.filter((_, i) => (seed + i) % 3 === 0);
+                setOccupiedSlots(randomOccupied);
+
+            }, [selectedDate, isOpen]);
+
+
             const handleDateChange = (e) => {
                 setSelectedDate(e.target.value);
-                // Re-randomize slots to simulate querying DB for that date
-                const occupied = timeSlots.filter(() => Math.random() > 0.6);
-                setOccupiedSlots(occupied);
                 setSelectedTime(null);
             };
 
@@ -534,7 +554,6 @@
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
                     <div className="relative bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col animate-slide-up">
                         
-                        {/* Header */}
                         <div className="p-5 border-b border-white/10 flex justify-between items-center bg-slate-800/50 rounded-t-2xl">
                             <div>
                                 <h3 className="text-xl font-bold text-white">{room.name}</h3>
@@ -545,10 +564,8 @@
                             </button>
                         </div>
 
-                        {/* Body */}
                         <div className="p-6 space-y-6">
                             
-                            {/* User Info (Read Only) */}
                             <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-purple-600/20 flex items-center justify-center text-purple-300">
                                     <i className="fa-solid fa-user"></i>
@@ -560,42 +577,47 @@
                                 </div>
                             </div>
 
-                            {/* Date Selection */}
                             <div>
                                 <label className="block text-xs font-semibold text-gray-400 mb-2">SELECT DATE</label>
                                 <input 
                                     type="date" 
                                     value={selectedDate}
                                     onChange={handleDateChange}
+                                    min={new Date().toISOString().split('T')[0]}
                                     className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                                 />
                             </div>
 
-                            {/* Time Selection */}
                             <div>
                                 <label className="block text-xs font-semibold text-gray-400 mb-2">AVAILABLE SLOTS</label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {timeSlots.map(time => {
-                                        const isOccupied = occupiedSlots.includes(time);
-                                        const isSelected = selectedTime === time;
-                                        return (
-                                            <button
-                                                key={time}
-                                                disabled={isOccupied}
-                                                onClick={() => setSelectedTime(time)}
-                                                className={`py-2 rounded-lg text-xs font-medium transition-all ${
-                                                    isOccupied 
-                                                        ? 'bg-red-500/10 text-red-500/50 cursor-not-allowed border border-transparent'
-                                                        : isSelected
-                                                            ? 'bg-green-500 text-black shadow-lg shadow-green-500/20 scale-105'
-                                                            : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                                                }`}
-                                            >
-                                                {time}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
+                                {availableSlots.length === 0 ? (
+                                    <div className="text-center p-4 bg-white/5 rounded-xl text-gray-500 text-sm">
+                                        No slots available for this date/time.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {availableSlots.map(time => {
+                                            const isOccupied = occupiedSlots.includes(time);
+                                            const isSelected = selectedTime === time;
+                                            return (
+                                                <button
+                                                    key={time}
+                                                    disabled={isOccupied}
+                                                    onClick={() => setSelectedTime(time)}
+                                                    className={`py-2 rounded-lg text-xs font-medium transition-all ${
+                                                        isOccupied 
+                                                            ? 'bg-red-500/10 text-red-500/50 cursor-not-allowed border border-transparent'
+                                                            : isSelected
+                                                                ? 'bg-green-500 text-black shadow-lg shadow-green-500/20 scale-105'
+                                                                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                                                    }`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                )}
                                 <p className="text-[10px] text-gray-500 mt-2 text-right">
                                     <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>Selected
                                     <span className="inline-block w-2 h-2 rounded-full bg-white/10 border border-white/10 ml-2 mr-1"></span>Available
@@ -603,7 +625,6 @@
                                 </p>
                             </div>
 
-                            {/* Purpose */}
                             <div>
                                 <label className="block text-xs font-semibold text-gray-400 mb-2">PURPOSE</label>
                                 <div className="relative">
@@ -625,7 +646,6 @@
 
                         </div>
 
-                        {/* Footer */}
                         <div className="p-5 border-t border-white/10 flex gap-3">
                             <button onClick={onClose} className="flex-1 py-3 rounded-xl text-gray-300 font-medium hover:bg-white/5 transition-colors">
                                 Cancel
@@ -643,7 +663,6 @@
             );
         };
 
-        // --- Reader Component for PTAR Online Books ---
         const BookReader = ({ book, onClose }) => {
             const [currentPage, setCurrentPage] = useState(1);
             const totalPages = 15; // Mock total pages
@@ -839,7 +858,7 @@
                         <div className="mt-8 text-center">
                              <p className="text-xs text-gray-500 mb-2">Registered Students Only</p>
                              <div className="text-[10px] text-gray-600 font-mono">
-                                Try: 2024441674 or 2024696532
+                                Try: 2024441674 (e.g. 2024xxxxxx)
                              </div>
                         </div>
                     </div>
@@ -1526,18 +1545,21 @@
             );
         };
 
-        const RoomBooking = ({ onBookClick }) => {
+        const RoomBooking = ({ onBookClick, rooms }) => {
             return (
                 <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 shadow-xl h-full">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-white font-semibold flex items-center gap-2 text-sm md:text-base">
                             <i className="fa-solid fa-people-roof text-pink-400"></i> Smart Booking
                         </h3>
-                        <button className="text-xs text-purple-300 hover:text-white transition-colors">View All</button>
+                        <div className="flex items-center gap-2">
+                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                             <span className="text-[10px] text-green-400 uppercase font-bold tracking-wider">Live Availability</span>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:gap-4">
-                        {roomData.map((room) => (
+                        {rooms.map((room) => (
                             <div 
                                 key={room.id} 
                                 className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors"
@@ -1558,7 +1580,7 @@
                                         onClick={() => onBookClick(room)}
                                         className="px-2 py-1 md:px-3 md:py-1.5 bg-green-500/20 text-green-300 border border-green-500/30 rounded-lg text-[10px] md:text-xs font-semibold hover:bg-green-500 hover:text-black transition-all whitespace-nowrap ml-2"
                                     >
-                                        Book
+                                        Book Now
                                     </button>
                                 ) : room.status === 'Occupied' ? (
                                     <span className="text-[10px] md:text-xs text-red-400 font-medium whitespace-nowrap ml-2">Until {room.nextAvailable}</span>
@@ -1641,11 +1663,77 @@
             // Booking State
             const [bookingModalOpen, setBookingModalOpen] = useState(false);
             const [selectedRoom, setSelectedRoom] = useState(null);
+            
+            // Live Room Data State
+            const [rooms, setRooms] = useState([]);
+
+            // Real-time Room Update Logic
+            useEffect(() => {
+                const updateRooms = () => {
+                    const now = new Date();
+                    const hour = now.getHours(); // 0-23
+                    const isWeekend = now.getDay() === 0 || now.getDay() === 6; // 0=Sun, 6=Sat
+                    
+                    // PTAR Hours: 8 AM - 10 PM Weekdays, 8 AM - 5 PM Weekends
+                    const openHour = 8;
+                    const closeHour = isWeekend ? 17 : 22;
+
+                    // Base Room Data
+                    const baseRooms = [
+                        { id: '1', name: 'Discussion Room 1', capacity: 4 },
+                        { id: '2', name: 'Discussion Room 2', capacity: 6 },
+                        { id: '3', name: 'Discussion Room 3', capacity: 4 },
+                        { id: '4', name: 'Discussion Room 4', capacity: 6 },
+                        { id: '5', name: 'Studio Room', capacity: 10 },
+                    ];
+
+                    const updatedRooms = baseRooms.map((room, index) => {
+                        // Check if closed
+                        if (hour < openHour || hour >= closeHour) {
+                             return { 
+                                 ...room, 
+                                 status: 'Closed', 
+                                 nextAvailable: '8:00 AM' 
+                             };
+                        }
+
+                        // Simulate status based on time
+                        // Using current hour + index to make it deterministic for that hour but different for each room
+                        const isOccupied = (hour + index) % 3 === 0; 
+                        
+                        if (isOccupied) {
+                            let nextHour = hour + 1;
+                            let ampm = 'AM';
+                            if (nextHour >= 12) {
+                                ampm = 'PM';
+                                if (nextHour > 12) nextHour -= 12;
+                            }
+                            return { 
+                                ...room, 
+                                status: 'Occupied', 
+                                nextAvailable: `${nextHour}:00 ${ampm}` 
+                            };
+                        } else {
+                            return { 
+                                ...room, 
+                                status: 'Available', 
+                                nextAvailable: 'Now' 
+                            };
+                        }
+                    });
+                    setRooms(updatedRooms);
+                };
+
+                updateRooms(); // Initial run
+                const interval = setInterval(updateRooms, 60000); // Run every minute to update status
+                return () => clearInterval(interval);
+            }, []);
+
 
             const handleLogin = (userData) => {
                 setUser(userData);
                 setIsLoggedIn(true);
-                addNotification(`Welcome back, ${userData.name.split(' ')[0]}!`);
+                addNotification(`Welcome back! Login time: ${getMalaysiaTime()}`);
             };
 
             const handleLogout = () => {
@@ -1660,20 +1748,21 @@
             const addNotification = (message) => {
                 const newNotif = {
                     message,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    time: getMalaysiaTime(),
                     read: false
                 };
                 setNotifications(prev => [newNotif, ...prev]);
             };
 
             const toggleBorrow = (book) => {
+                const timeNow = getMalaysiaTime();
                 const newBorrowed = new Set(borrowedBooks);
                 if (newBorrowed.has(book.id)) {
                     newBorrowed.delete(book.id);
-                    addNotification(`You returned "${book.title}". Thank you!`);
+                    addNotification(`Returned "${book.title}" at ${timeNow}.`);
                 } else {
                     newBorrowed.add(book.id);
-                    addNotification(`You borrowed "${book.title}". Please pick it up at Counter A.`);
+                    addNotification(`Borrowed "${book.title}" at ${timeNow}. Due in 14 days.`);
                 }
                 setBorrowedBooks(newBorrowed);
             };
@@ -1684,7 +1773,7 @@
                     newLiked.delete(book.id);
                 } else {
                     newLiked.add(book.id);
-                    addNotification(`You liked "${book.title}"`);
+                    addNotification(`Added "${book.title}" to favorites.`);
                 }
                 setLikedBooks(newLiked);
             };
@@ -1697,7 +1786,7 @@
 
             const handleBookingConfirm = (bookingData) => {
                 setBookingModalOpen(false);
-                addNotification(`Booking Confirmed: ${bookingData.room.name} on ${bookingData.date} at ${bookingData.time}`);
+                addNotification(`Booking Confirmed: ${bookingData.room.name} for ${bookingData.date} at ${bookingData.time}`);
                 setSelectedRoom(null);
             };
 
@@ -1751,7 +1840,7 @@
                                             </div>
 
                                             <div className="md:col-span-7 lg:col-span-5">
-                                                <RoomBooking onBookClick={handleBookClick} />
+                                                <RoomBooking onBookClick={handleBookClick} rooms={rooms} />
                                             </div>
 
                                             <div className="md:col-span-12 lg:col-span-4">
@@ -1771,7 +1860,7 @@
                                 </div>}
                                 {activeTab === 'rooms' && (
                                     <div className="max-w-4xl mx-auto h-full pb-10">
-                                        <RoomBooking onBookClick={handleBookClick} />
+                                        <RoomBooking onBookClick={handleBookClick} rooms={rooms} />
                                     </div>
                                 )}
                                 {activeTab === 'digital-id' && (
