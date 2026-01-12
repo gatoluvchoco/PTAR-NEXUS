@@ -80,6 +80,18 @@
         height: 100vh;
         height: 100dvh;
       }
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-nexus-dark transition-colors duration-300">
@@ -98,10 +110,19 @@
              });
         };
 
-        const getMalaysiaDate = () => {
-             return new Date().toLocaleDateString('en-MY', {
-                 timeZone: 'Asia/Kuala_Lumpur'
+        const getMalaysiaDate = (dateObj = new Date()) => {
+             return dateObj.toLocaleDateString('en-MY', {
+                 timeZone: 'Asia/Kuala_Lumpur',
+                 year: 'numeric',
+                 month: 'long',
+                 day: 'numeric'
              });
+        };
+        
+        const addDays = (date, days) => {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
         };
 
         // --- Mock Data & Constants ---
@@ -124,7 +145,7 @@
           "2024229294": "JAYCARLSON WILSON",
           "2024206946": "LUQMAN NURHAKIM OMARSHARIFF",
           "2024419516": "MOHAMAD ZAINORAZIEM BIN ZAINAL",
-          "2024436008": "MOHammad SYAHRIL AZLIE",
+          "2024436008": "MOHAMMAD SYAHRIL AZLIE",
           "2024681454": "MOHD AMIRUL HAFIZ BIN ILAH",
           "2024282012": "MUHAMAD HAZIM AKMAL BIN JAMAN",
           "2024411696": "MUHAMMAD AFIQ HAIQAL BIN MOHD ROSDI",
@@ -249,7 +270,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.TECH,
                 availability: 'PTAR Digital',
-                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/IEEE_logo.svg/1200px-IEEE_logo.svg.png',
+                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/IEEE_logo.svg/300px-IEEE_logo.svg.png',
                 summary: 'Access to over 5 million documents from IEEE journals, conferences, and standards in electrical engineering, computer science, and electronics.',
                 url: 'https://ieeexplore.ieee.org/'
             },
@@ -261,7 +282,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.SCIENCE,
                 availability: 'PTAR Digital',
-                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/ScienceDirect_logo.svg/2560px-ScienceDirect_logo.svg.png',
+                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/ScienceDirect_logo.svg/300px-ScienceDirect_logo.svg.png',
                 summary: 'Leading full-text scientific database offering journal articles and book chapters from more than 2,500 peer-reviewed journals.',
                 url: 'https://www.sciencedirect.com/'
             },
@@ -273,7 +294,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.BUSINESS,
                 availability: 'PTAR Digital',
-                coverImage: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Emerald_Publishing.svg/1200px-Emerald_Publishing.svg.png',
+                coverImage: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/00/Emerald_Publishing.svg/300px-Emerald_Publishing.svg.png',
                 summary: 'Discover research in business, management, economics, engineering, computing, and social sciences.',
                 url: 'https://www.emerald.com/insight/'
             },
@@ -297,7 +318,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.TECH,
                 availability: 'PTAR Digital',
-                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Association_for_Computing_Machinery_%28ACM%29_logo.svg/1200px-Association_for_Computing_Machinery_%28ACM%29_logo.svg.png',
+                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Association_for_Computing_Machinery_%28ACM%29_logo.svg/300px-Association_for_Computing_Machinery_%28ACM%29_logo.svg.png',
                 summary: 'Comprehensive collection of full-text articles and bibliographic records covering the fields of computing and information technology.',
                 url: 'https://dl.acm.org/'
             },
@@ -309,7 +330,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.SCIENCE,
                 availability: 'PTAR Digital',
-                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Springer_Nature.svg/1200px-Springer_Nature.svg.png',
+                coverImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Springer_Nature.svg/300px-Springer_Nature.svg.png',
                 summary: 'Providing researchers with access to millions of scientific documents from journals, books, series, protocols, reference works and proceedings.',
                 url: 'https://link.springer.com/'
             },
@@ -321,7 +342,7 @@
                 type: ResourceType.DATABASE,
                 genre: Genre.HISTORY,
                 availability: 'PTAR Digital',
-                coverImage: 'https://www.bernama.com/en/images/bernama_logo_v2.png',
+                coverImage: 'https://img.freepik.com/premium-vector/news-logo-design-template-vector_9850-255.jpg',
                 summary: 'Comprehensive news and information database on Malaysia, including news archives, biographies, and industry reports.',
                 url: 'http://blis.bernama.com/'
             },
@@ -339,15 +360,538 @@
             }
         ];
 
-        const initialAnalyticsData = [
-            { name: 'Sci-Fi', value: 400, color: 'bg-purple-500' },
-            { name: 'History', value: 300, color: 'bg-green-400' },
-            { name: 'Tech', value: 550, color: 'bg-yellow-400' },
-            { name: 'Biz', value: 200, color: 'bg-orange-400' },
-        ];
-
         // --- Components ---
+
+        // --- Digital ID Component ---
+        const DigitalID = ({ user }) => {
+            const [flipped, setFlipped] = useState(false);
+            const [kioskStatus, setKioskStatus] = useState('Standby'); // Standby, Scanning, Verified
+
+            if (!user) return null;
+            
+            // Generate QR Code URL based on student ID
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${user.studentId}`;
+
+            const handleKioskScan = () => {
+                if (kioskStatus === 'Verified') return;
+                setKioskStatus('Scanning');
+                // Auto flip to back for scan simulation
+                setFlipped(true);
+                setTimeout(() => {
+                    setKioskStatus('Verified');
+                    setTimeout(() => setKioskStatus('Standby'), 3000);
+                }, 1500);
+            };
+
+            return (
+                <div className="flex flex-col gap-4">
+                    <div 
+                        className="relative w-full h-56 md:h-64 perspective-1000 cursor-pointer group select-none"
+                        onClick={() => setFlipped(!flipped)}
+                    >
+                        <div className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${flipped ? 'rotate-y-180' : ''}`}>
+                            
+                            {/* Front Side */}
+                            <div className="absolute w-full h-full bg-gradient-to-br from-purple-800 to-indigo-900 rounded-2xl p-6 text-white shadow-2xl backface-hidden flex flex-col justify-between overflow-hidden border border-white/10">
+                                {/* Abstract Shapes */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl -ml-10 -mb-10"></div>
+                                
+                                <div className="flex justify-between items-start z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center border border-white/30">
+                                            <i className="fa-solid fa-layer-group text-2xl"></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg tracking-wide">PTAR NEXUS</h3>
+                                            <p className="text-[10px] text-white/70 uppercase tracking-widest">Digital Access Card</p>
+                                        </div>
+                                    </div>
+                                    {/* Removed UiTM Logo as requested */}
+                                </div>
+
+                                <div className="flex gap-4 items-center z-10 mt-2">
+                                    <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-white/30 shadow-lg">
+                                        <img src={user.avatarUrl} alt="User" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold truncate max-w-[180px] md:max-w-xs">{user.name}</h2>
+                                        <p className="font-mono text-purple-200 tracking-wider text-sm">{user.studentId}</p>
+                                        <div className="mt-1 inline-block px-2 py-0.5 bg-green-500/20 border border-green-400/30 rounded text-[10px] font-semibold text-green-300">
+                                            ACTIVE STUDENT
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-end z-10">
+                                    <div>
+                                        <p className="text-[9px] text-white/50 uppercase">Faculty</p>
+                                        <p className="text-xs font-medium truncate max-w-[200px]">{user.department}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-white/50">Tap to Scan</span>
+                                        <i className="fa-solid fa-qrcode text-white text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Back Side */}
+                            <div className="absolute w-full h-full bg-slate-100 rounded-2xl p-6 text-slate-800 shadow-2xl backface-hidden rotate-y-180 flex flex-col items-center justify-center border border-slate-300">
+                                {/* Removed Black Strip as requested */}
+                                
+                                <div className="mt-4 text-center w-full flex flex-col items-center">
+                                    <p className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Library Entry Pass</p>
+                                    
+                                    {/* QR Code Display */}
+                                    <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200 mb-3">
+                                        <img src={qrCodeUrl} alt="Entry QR Code" className="w-32 h-32 object-contain" />
+                                    </div>
+                                    
+                                    <div className="bg-slate-200 px-4 py-1.5 rounded-lg border border-slate-300">
+                                        <p className="font-mono text-lg tracking-widest font-bold text-slate-700">{user.studentId}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-auto w-full flex justify-between items-center text-[10px] text-slate-400">
+                                    <span>Valid until: Dec 2025</span>
+                                    <span><i className="fa-solid fa-rotate mr-1"></i> Flip back</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* Digital Kiosk Section */}
+                    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                                kioskStatus === 'Verified' ? 'bg-green-100 border-green-500 text-green-600' :
+                                kioskStatus === 'Scanning' ? 'bg-yellow-100 border-yellow-500 text-yellow-600 animate-pulse' :
+                                'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20 text-slate-400'
+                            }`}>
+                                <i className={`fa-solid ${
+                                    kioskStatus === 'Verified' ? 'fa-check' :
+                                    kioskStatus === 'Scanning' ? 'fa-wifi' :
+                                    'fa-door-open'
+                                }`}></i>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-sm text-slate-800 dark:text-white">Entry Kiosk</h4>
+                                <p className="text-[10px] text-slate-500 dark:text-gray-400">
+                                    {kioskStatus === 'Verified' ? 'Access Granted' : 
+                                     kioskStatus === 'Scanning' ? 'Verifying ID...' : 
+                                     'Tap to Check-in'}
+                                </p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleKioskScan}
+                            disabled={kioskStatus !== 'Standby'}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                kioskStatus === 'Verified' ? 'bg-green-500 text-white' :
+                                kioskStatus === 'Scanning' ? 'bg-yellow-500 text-white' :
+                                'bg-purple-600 hover:bg-purple-500 text-white'
+                            }`}
+                        >
+                            {kioskStatus === 'Verified' ? 'OPEN' : 'SCAN'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Room Booking Component ---
+        const RoomBooking = ({ onBookClick, rooms }) => {
+            return (
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-xl transition-colors h-full flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i className="fa-solid fa-people-roof text-purple-500"></i> Smart Rooms
+                        </h3>
+                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 rounded-lg animate-pulse">
+                            Live Status
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto pr-1 scrollbar-hide flex-1">
+                        {rooms.map((room) => (
+                            <div 
+                                key={room.id}
+                                onClick={() => room.status === 'Available' && onBookClick(room)}
+                                className={`p-4 rounded-xl border transition-all duration-300 relative group ${
+                                    room.status === 'Available'
+                                    ? 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-purple-500 cursor-pointer hover:shadow-lg hover:-translate-y-1'
+                                    : 'bg-slate-50 dark:bg-black/20 border-slate-100 dark:border-white/5 opacity-80 cursor-not-allowed'
+                                }`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                        room.status === 'Available' 
+                                        ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300' 
+                                        : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-gray-400'
+                                    }`}>
+                                        <i className="fa-solid fa-chalkboard-user"></i>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                        room.status === 'Available' 
+                                        ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-300' 
+                                        : room.status === 'Occupied' 
+                                            ? 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-300'
+                                            : 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-gray-300'
+                                    }`}>
+                                        {room.status}
+                                    </div>
+                                </div>
+                                
+                                <h4 className="font-bold text-sm text-slate-800 dark:text-white mb-0.5">{room.name}</h4>
+                                <p className="text-[10px] text-slate-500 dark:text-gray-400 mb-3">{room.capacity} Pax Capacity</p>
+
+                                <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-gray-500 border-t border-slate-100 dark:border-white/5 pt-2">
+                                    <i className="fa-regular fa-clock"></i>
+                                    {room.status === 'Available' ? 'Ready for booking' : `Next: ${room.nextAvailable}`}
+                                </div>
+
+                                {room.status === 'Available' && (
+                                    <div className="absolute inset-0 bg-purple-600/90 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-white font-bold text-sm"><i className="fa-regular fa-calendar-check mr-1"></i> Book Now</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Analytics Component ---
+        const Analytics = () => {
+            const [data, setData] = useState([]);
+
+            useEffect(() => {
+                // Fixed Genres per user request
+                const baseGenres = [
+                    { name: 'Sci-Fi', color: 'bg-gradient-to-t from-purple-600 to-purple-400' },
+                    { name: 'History', color: 'bg-gradient-to-t from-green-600 to-green-400' },
+                    { name: 'Tech', color: 'bg-gradient-to-t from-yellow-500 to-yellow-300' },
+                    { name: 'Biz', color: 'bg-gradient-to-t from-orange-500 to-orange-300' },
+                ];
+                
+                // Randomize values only for "Live" effect
+                const randomized = baseGenres.map(item => ({
+                    ...item,
+                    value: Math.floor(Math.random() * 500) + 150 // Ensure minimum height
+                }));
+                setData(randomized);
+            }, []);
+
+            return (
+                 <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-xl transition-colors h-full flex flex-col min-h-[350px]">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                        <i className="fa-solid fa-chart-pie text-pink-500"></i> Trending Genres (Live)
+                    </h3>
+                    
+                    <div className="flex-1 flex flex-col justify-end gap-2 pb-4">
+                        <div className="flex items-end justify-around h-48 px-2 gap-4">
+                            {data.map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center gap-3 w-full group h-full justify-end">
+                                    <div className="w-full relative flex items-end h-full">
+                                        <div 
+                                            className={`w-full rounded-t-xl transition-all duration-1000 ease-out shadow-lg ${item.color}`} 
+                                            style={{ height: `${(item.value / 650) * 100}%` }}
+                                        >
+                                            <div className="w-full h-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl"></div>
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="block text-xs font-bold text-slate-700 dark:text-white">{item.name}</span>
+                                        <span className="block text-[10px] text-slate-500 dark:text-gray-400">{item.value} reads</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs text-slate-500 dark:text-gray-400">Monthly Target</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-white">85%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2.5 overflow-hidden">
+                            <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 h-full rounded-full animate-pulse" style={{ width: '85%' }}></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // --- User Profile Modal ---
+        const UserProfileModal = ({ user, isOpen, onClose, history }) => {
+            if (!isOpen || !user) return null;
+
+            // Mock Data for Analytics
+            const analytics = {
+                loginFrequency: "Daily (Avg 3 logins/day)",
+                peakTime: "02:00 PM - 04:00 PM",
+                topSearch: ["Clean Code", "Digital Economy", "Management 101"],
+                resourceMix: [
+                    { label: "Physical Books", val: 35, color: "bg-amber-500" },
+                    { label: "E-Journals", val: 45, color: "bg-purple-500" },
+                    { label: "Databases", val: 20, color: "bg-cyan-500" }
+                ]
+            };
+
+            return (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-slide-up transition-colors max-h-[90vh]">
+                        
+                        {/* Sidebar / Bio */}
+                        <div className="w-full md:w-1/3 bg-slate-50 dark:bg-black/20 p-8 flex flex-col items-center border-r border-slate-200 dark:border-white/10 text-center">
+                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-purple-500 shadow-xl mb-4 overflow-hidden">
+                                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                             </div>
+                             <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-1">{user.name}</h2>
+                             <p className="text-sm text-purple-600 dark:text-purple-400 font-mono mb-4">{user.studentId}</p>
+                             
+                             <div className="w-full text-left space-y-3 mt-4">
+                                <div className="bg-white dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                                    <p className="text-xs text-slate-500 dark:text-gray-400 uppercase font-bold">Faculty</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-gray-200">{user.department}</p>
+                                </div>
+                                <div className="bg-white dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                                    <p className="text-xs text-slate-500 dark:text-gray-400 uppercase font-bold">Email</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-gray-200 truncate">{user.studentId}@student.uitm.edu.my</p>
+                                </div>
+                                <div className="bg-white dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5">
+                                    <p className="text-xs text-slate-500 dark:text-gray-400 uppercase font-bold">Status</p>
+                                    <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active Student
+                                    </p>
+                                </div>
+                             </div>
+                        </div>
+
+                        {/* Content / Stats */}
+                        <div className="flex-1 p-8 overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <i className="fa-solid fa-chart-user text-cyan-500"></i> Student Analytics
+                                </h3>
+                                <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 flex items-center justify-center transition-colors">
+                                    <i className="fa-solid fa-xmark text-slate-600 dark:text-white"></i>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="p-4 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl">
+                                    <p className="text-xs text-indigo-600 dark:text-indigo-300 font-bold uppercase mb-1">Login Frequency</p>
+                                    <p className="text-lg font-bold text-slate-800 dark:text-white">{analytics.loginFrequency}</p>
+                                </div>
+                                <div className="p-4 bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20 rounded-2xl">
+                                    <p className="text-xs text-pink-600 dark:text-pink-300 font-bold uppercase mb-1">Peak Usage Time</p>
+                                    <p className="text-lg font-bold text-slate-800 dark:text-white">{analytics.peakTime}</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <h4 className="text-sm font-bold text-slate-700 dark:text-gray-300 mb-3">Resource Usage Patterns</h4>
+                                <div className="flex h-4 rounded-full overflow-hidden mb-2">
+                                    {analytics.resourceMix.map((item, idx) => (
+                                        <div key={idx} className={`${item.color} h-full`} style={{width: `${item.val}%`}}></div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-4 text-xs">
+                                    {analytics.resourceMix.map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-1">
+                                            <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
+                                            <span className="text-slate-500 dark:text-gray-400">{item.label} ({item.val}%)</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-700 dark:text-gray-300 mb-3">Recent Search Queries</h4>
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    {analytics.topSearch.map((term, idx) => (
+                                        <span key={idx} className="px-3 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-xs text-slate-600 dark:text-gray-300">
+                                            <i className="fa-solid fa-magnifying-glass mr-1 opacity-50"></i> {term}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Added Activity History Section */}
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-700 dark:text-gray-300 mb-3">Activity History (Reading, Borrowing, Returns)</h4>
+                                <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4 border border-slate-200 dark:border-white/5 max-h-48 overflow-y-auto scrollbar-hide">
+                                    {history && history.length > 0 ? (
+                                        history.map((item, idx) => (
+                                            <div key={idx} className="flex items-start gap-3 mb-3 last:mb-0 border-b border-slate-200 dark:border-white/5 pb-2 last:border-0 last:pb-0">
+                                                <div className="mt-1 w-2 h-2 rounded-full bg-purple-500 flex-shrink-0"></div>
+                                                <div>
+                                                    <p className="text-xs text-slate-700 dark:text-gray-300 font-medium">{item.message}</p>
+                                                    <p className="text-[10px] text-slate-400 dark:text-gray-500">{item.time}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-slate-400 text-center py-4">No recent activity recorded.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
         
+        // --- Loan Registration Form Modal ---
+        const LoanFormModal = ({ book, user, isOpen, onClose, onConfirm, mode = 'BORROW' }) => {
+             const [courseCode, setCourseCode] = useState('');
+             const [errorMsg, setErrorMsg] = useState('');
+             const today = new Date();
+             
+             // Calculate dates
+             const borrowDate = getMalaysiaDate(today);
+             // Return date: If Renew, +7 days. If Borrow, +14 days.
+             const daysToAdd = mode === 'RENEW' ? 7 : 14;
+             const returnDateObj = addDays(today, daysToAdd);
+             const returnDate = getMalaysiaDate(returnDateObj);
+             const returnTime = "5:00 PM"; // Fixed library closing time
+
+             if (!isOpen || !book) return null;
+
+             const handleConfirm = () => {
+                 setErrorMsg('');
+                 // For Renewal, course code is optional. For Borrowing, it's required.
+                 if (mode === 'BORROW' && !courseCode.trim()) {
+                     setErrorMsg("Please enter your Course Code to proceed.");
+                     return;
+                 }
+                 
+                 onConfirm({
+                     bookId: book.id,
+                     courseCode: courseCode || 'N/A', // Default if renewal
+                     borrowDate,
+                     returnDate,
+                     mode
+                 });
+             };
+
+             return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col animate-slide-up transition-colors">
+                        
+                        <div className="p-5 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 rounded-t-2xl flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                                {mode === 'RENEW' ? 'Renew Loan' : 'Borrowing Registration'}
+                            </h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i className="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 flex gap-4 items-center">
+                                <div className="w-16 h-24 bg-slate-200 dark:bg-black/30 rounded-lg overflow-hidden flex-shrink-0">
+                                     {book.coverImage !== 'placeholder' ? (
+                                        <img src={book.coverImage} className="w-full h-full object-cover" />
+                                     ) : (
+                                        <div className="w-full h-full flex items-center justify-center"><i className="fa-solid fa-book text-gray-400"></i></div>
+                                     )}
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-500 dark:text-gray-400 uppercase font-bold">{book.type}</p>
+                                    <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{book.title}</h4>
+                                    <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">{book.author}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1">FULL NAME</label>
+                                    <input type="text" value={user.name} readOnly className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-gray-300" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1">STUDENT ID</label>
+                                    <input type="text" value={user.studentId} readOnly className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-gray-300" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1">
+                                    COURSE CODE {mode === 'BORROW' && <span className="text-red-500">*</span>}
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={courseCode}
+                                    onChange={(e) => {
+                                        setCourseCode(e.target.value.toUpperCase());
+                                        setErrorMsg('');
+                                    }}
+                                    placeholder={mode === 'RENEW' ? "Optional for renewal" : "e.g. CS240"}
+                                    className="w-full bg-white dark:bg-black/40 border border-slate-300 dark:border-white/20 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors uppercase" 
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1">BORROWING DATE</label>
+                                    <div className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                                        <i className="fa-regular fa-calendar text-slate-400"></i> {borrowDate}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 mb-1">
+                                        {mode === 'RENEW' ? 'NEW DUE DATE' : 'RETURNING DATE'}
+                                    </label>
+                                    {mode === 'RENEW' ? (
+                                        <div className="w-full rounded-lg px-2 py-2 text-sm flex items-center justify-between gap-1 font-bold bg-blue-100 dark:bg-blue-600/20 border-2 border-blue-400 dark:border-blue-500 text-blue-800 dark:text-blue-200 shadow-md">
+                                            <div className="flex items-center gap-1.5">
+                                                <i className="fa-solid fa-calendar-plus text-blue-600 dark:text-blue-300"></i>
+                                                <div className="flex flex-col leading-none">
+                                                    <span>{returnDate}</span>
+                                                    <span className="text-[10px] font-normal opacity-80">by {returnTime}</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-extrabold">+7 DAYS</span>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full rounded-lg px-3 py-2 text-sm flex items-center gap-2 font-bold bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-300">
+                                            <i className="fa-solid fa-calendar-check"></i> {returnDate}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            {mode === 'RENEW' && (
+                                <div className="text-xs text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10 p-3 rounded-lg border border-blue-100 dark:border-blue-500/20">
+                                    <i className="fa-solid fa-circle-info mr-1"></i>
+                                    Renewal extends your loan period by 7 days from today. Late fines may still apply if already overdue.
+                                </div>
+                            )}
+
+                            {errorMsg && (
+                                <div className="text-xs text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 p-3 rounded-lg border border-red-100 dark:border-red-500/20 animate-pulse">
+                                    <i className="fa-solid fa-circle-exclamation mr-1"></i> {errorMsg}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-5 border-t border-slate-200 dark:border-white/10 flex gap-3">
+                             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-slate-600 dark:text-gray-300 font-medium hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">Cancel</button>
+                             <button onClick={handleConfirm} className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg shadow-purple-900/20 transition-all">
+                                 {mode === 'RENEW' ? 'Confirm Renewal' : 'Confirm Registration'}
+                             </button>
+                        </div>
+                    </div>
+                </div>
+             );
+        };
+
         // --- 1. Chatbot Component (NexusBot) ---
         const Chatbot = ({ user }) => {
             const [isOpen, setIsOpen] = useState(false);
@@ -381,6 +925,8 @@
                     return "Printing services are available at Level 1, IT Corner. Rate is RM0.10 per page (B&W).";
                 } else if (lower.includes('hello') || lower.includes('hi')) {
                     return "Hello! Beep boop! Is there anything specific you'd like to find today?";
+                } else if (lower.includes('renew')) {
+                    return "You can renew your borrowed books in the book detail view if they are not overdue or reserved by others.";
                 } else {
                     return "I'm still learning! Try asking about 'opening hours', 'booking rooms', 'wifi access', or 'fines'.";
                 }
@@ -869,6 +1415,7 @@
                 { id: 'rooms', icon: 'fa-people-roof', label: 'Room Booking' },
                 { id: 'digital-id', icon: 'fa-id-card', label: 'My Digital ID' },
                 { id: 'analytics', icon: 'fa-chart-line', label: 'Analytics' },
+                { id: 'feedback', icon: 'fa-comment-dots', label: 'Feedback' },
             ];
 
             return (
@@ -914,7 +1461,7 @@
             );
         };
 
-        const Header = ({ user, isOnline, setIsOnline, notifications, theme, toggleTheme }) => {
+        const Header = ({ user, isOnline, setIsOnline, notifications, theme, toggleTheme, onOpenProfile }) => {
             const [showNotifDropdown, setShowNotifDropdown] = useState(false);
             const fullName = user.name; 
             const unreadCount = notifications.length;
@@ -972,7 +1519,7 @@
                                             <div className="p-4 text-center text-slate-500 dark:text-gray-500 text-xs">No new notifications</div>
                                         ) : (
                                             notifications.map((notif, idx) => (
-                                                <div key={idx} className="p-3 border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                                <div key={idx} className="p-3 border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors">
                                                     <p className="text-xs text-slate-700 dark:text-gray-300">{notif.message}</p>
                                                     <span className="text-[10px] text-slate-400 dark:text-gray-500 mt-1 block">{notif.time}</span>
                                                 </div>
@@ -985,7 +1532,8 @@
                             <img 
                                 src={user.avatarUrl} 
                                 alt={user.name} 
-                                className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-purple-500/50 object-cover"
+                                onClick={onOpenProfile}
+                                className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-purple-500/50 object-cover cursor-pointer hover:border-purple-400 transition-colors"
                             />
                         </div>
                     </div>
@@ -993,7 +1541,7 @@
             );
         };
 
-        const BookDetailModal = ({ book, onClose, onToggleBorrow, isBorrowed, onRead }) => {
+        const BookDetailModal = ({ book, onClose, onToggleBorrow, isBorrowed, onRead, onRenew }) => {
             if (!book) return null;
 
             return (
@@ -1031,11 +1579,32 @@
                             <div className="flex-1 overflow-y-auto mb-6 pr-2 scrollbar-hide">
                                 <h3 className="text-xs font-semibold text-slate-400 dark:text-gray-500 mb-2 uppercase tracking-wider">Summary</h3>
                                 <p className="text-slate-600 dark:text-gray-300 text-sm leading-relaxed">{book.summary || 'No summary available for this title.'}</p>
+                                
+                                {isBorrowed && book.type === ResourceType.PHYSICAL && (
+                                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
+                                        <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">
+                                            <i className="fa-solid fa-circle-info mr-1"></i> Renewal Policy
+                                        </h4>
+                                        <p className="text-[10px] text-blue-600 dark:text-blue-200">
+                                            Online renewal is allowed once for an additional 7 days, provided the item is not reserved by another user and you have no outstanding fines.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex gap-3 mt-auto pt-4 border-t border-slate-200 dark:border-white/5">
                                  {/* Action Buttons based on type */}
                                  {book.type === ResourceType.PHYSICAL ? (
+                                    <>
+                                     {isBorrowed && (
+                                         <button
+                                            onClick={() => onRenew(book)}
+                                            className="flex-1 py-3 px-4 rounded-xl font-bold bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500 hover:text-white dark:hover:text-white text-blue-600 dark:text-blue-300 border border-blue-500/50 transition-all text-sm flex items-center justify-center gap-2"
+                                         >
+                                            <i className="fa-solid fa-clock-rotate-left"></i>
+                                            Renew Loan
+                                         </button>
+                                     )}
                                      <button
                                         onClick={() => onToggleBorrow(book)}
                                         className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2 ${isBorrowed ? 'bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500 hover:text-white text-red-600 dark:text-red-300 border border-red-500/50' : 'bg-green-500/10 dark:bg-green-500/20 hover:bg-green-500 hover:text-white dark:hover:text-black text-green-600 dark:text-green-300 border border-green-500/50'}`}
@@ -1043,6 +1612,7 @@
                                         <i className={`fa-solid ${isBorrowed ? 'fa-rotate-left' : 'fa-book-open'}`}></i>
                                         {isBorrowed ? 'Return Book' : 'Borrow Book'}
                                      </button>
+                                    </>
                                  ) : (
                                      <button 
                                         onClick={() => onRead(book)}
@@ -1059,7 +1629,214 @@
             )
         };
 
-        const UnifiedSearch = ({ borrowedBooks, onToggleBorrow, likedBooks, onToggleLike }) => {
+        const FeedbackView = () => {
+             const [formData, setFormData] = useState({ type: 'Bug', description: '', urgency: 'Normal' });
+             const [isSubmitting, setIsSubmitting] = useState(false);
+             const [isSubmitted, setIsSubmitted] = useState(false);
+
+             const handleSubmit = (e) => {
+                 e.preventDefault();
+                 setIsSubmitting(true);
+                 // Simulate API call
+                 setTimeout(() => {
+                     setIsSubmitting(false);
+                     setIsSubmitted(true);
+                     setTimeout(() => {
+                         setIsSubmitted(false);
+                         setFormData({ type: 'Bug', description: '', urgency: 'Normal' });
+                     }, 3000);
+                 }, 1500);
+             };
+
+             return (
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8 shadow-xl max-w-2xl mx-auto mt-10 transition-colors animate-fade-in">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-600/20 flex items-center justify-center text-purple-600 dark:text-purple-300">
+                             <i className="fa-solid fa-comment-dots text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Feedback & Reporting</h2>
+                            <p className="text-slate-500 dark:text-gray-400 text-sm">Help us improve PTAR Nexus by reporting issues.</p>
+                        </div>
+                    </div>
+
+                    {isSubmitted ? (
+                        <div className="p-8 bg-green-500/10 border border-green-500/20 rounded-xl text-center animate-fade-in">
+                            <i className="fa-solid fa-circle-check text-4xl text-green-500 mb-3"></i>
+                            <h3 className="text-lg font-bold text-green-700 dark:text-green-300">Feedback Received!</h3>
+                            <p className="text-sm text-green-600 dark:text-green-200 mt-2">
+                                Thank you for your report. Our technical team has been notified and system logs have been attached.
+                            </p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Issue Type</label>
+                                    <select 
+                                        value={formData.type}
+                                        onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                        className="w-full bg-slate-100 dark:bg-black/30 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none"
+                                    >
+                                        <option>Bug Report</option>
+                                        <option>Feature Request</option>
+                                        <option>UX Improvement</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Urgency</label>
+                                    <select 
+                                        value={formData.urgency}
+                                        onChange={(e) => setFormData({...formData, urgency: e.target.value})}
+                                        className="w-full bg-slate-100 dark:bg-black/30 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none"
+                                    >
+                                        <option>Low</option>
+                                        <option>Normal</option>
+                                        <option>High</option>
+                                        <option>Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-2">Description</label>
+                                <textarea 
+                                    rows="5"
+                                    required
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                    placeholder="Please describe the issue or your suggestion in detail..."
+                                    className="w-full bg-slate-100 dark:bg-black/30 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                                ></textarea>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-gray-400 bg-slate-100 dark:bg-white/5 p-3 rounded-lg border border-slate-200 dark:border-white/5">
+                                <i className="fa-solid fa-code text-purple-500"></i>
+                                <span>System logs and user session data will be automatically linked to this report for diagnostics.</span>
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting}
+                                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-lg shadow-purple-900/20 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {isSubmitting ? <><i className="fa-solid fa-spinner fa-spin"></i> Sending...</> : 'Submit Feedback'}
+                            </button>
+                        </form>
+                    )}
+                </div>
+             );
+        };
+        
+        // Define ResultCard outside UnifiedSearch
+        const ResultCard = ({ result, isBorrowed, isLiked, onBookClick, onToggleBorrow, onToggleLike, onRead }) => {
+            const isPhysical = result.type === ResourceType.PHYSICAL;
+            const isPtarDigital = result.availability === 'PTAR Digital';
+
+            return (
+                <div 
+                    className="flex flex-row bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden hover:bg-white dark:hover:bg-white/10 hover:shadow-xl dark:hover:border-purple-500/30 transition-all duration-300 group h-full cursor-pointer relative shadow-sm"
+                    onClick={() => onBookClick(result)}
+                >
+                    <div className="w-24 md:w-32 flex-shrink-0 relative bg-slate-100 dark:bg-black/20">
+                        {result.coverImage !== 'placeholder' ? (
+                            <img 
+                                src={result.coverImage} 
+                                alt={result.title} 
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-500 bg-white/5">
+                                <div className="text-center p-2">
+                                    <i className={`fa-solid ${isPhysical ? 'fa-book' : 'fa-laptop-code'} text-2xl mb-1`}></i>
+                                    <div className="text-[9px] uppercase font-bold text-gray-600">{result.type}</div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                            {isPhysical ? (
+                                <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-amber-500/90 text-black text-[9px] md:text-[10px] font-bold rounded shadow-md">Physical</span>
+                            ) : isPtarDigital ? (
+                                <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-purple-500/90 text-white text-[9px] md:text-[10px] font-bold rounded shadow-md">PTAR Online</span>
+                            ) : (
+                                <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-cyan-500/90 text-black text-[9px] md:text-[10px] font-bold rounded shadow-md">Open Web</span>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="p-3 md:p-4 flex flex-col justify-between flex-1 min-w-0">
+                        <div>
+                            <div className="text-[9px] md:text-[10px] text-purple-600 dark:text-purple-300 uppercase font-bold tracking-wider mb-1 truncate">{result.genre}</div>
+                            <h4 className="text-slate-900 dark:text-white font-bold text-sm md:text-base leading-tight mb-1 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">{result.title}</h4>
+                            <p className="text-slate-500 dark:text-gray-400 text-xs mb-2 truncate">{result.author} • {result.year}</p>
+                            
+                            {isPhysical ? (
+                                <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-gray-300 bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
+                                    <i className="fa-solid fa-location-dot mt-0.5 text-amber-500 dark:text-amber-400 flex-shrink-0"></i>
+                                    <div className="overflow-hidden min-w-0">
+                                        <p className="font-medium text-amber-700 dark:text-amber-200 truncate">{result.shelfLocation}</p>
+                                        <p className="text-[10px] opacity-70 truncate">Call No: {result.callNumber}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-gray-300 bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
+                                    {isPtarDigital ? <i className="fa-solid fa-lock text-purple-600 dark:text-purple-400 flex-shrink-0"></i> : <i className="fa-solid fa-globe text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>}
+                                    <p className={`font-medium truncate ${isPtarDigital ? 'text-purple-700 dark:text-purple-200' : 'text-cyan-700 dark:text-cyan-200'}`}>
+                                        {isPtarDigital ? 'Authorized Student Access' : 'Public Digital Access'}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-3 flex gap-2">
+                            {isPhysical ? (
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation(); 
+                                        onToggleBorrow(result);
+                                    }}
+                                    className={`flex-1 py-1.5 px-2 md:px-3 border rounded-lg text-[10px] md:text-xs font-medium transition-all whitespace-nowrap ${
+                                        isBorrowed 
+                                            ? 'bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500 hover:text-white border-red-500/50 text-red-600 dark:text-red-300' 
+                                            : 'bg-slate-100 dark:bg-white/10 hover:bg-green-500 hover:text-white dark:hover:text-black border-slate-200 dark:border-white/20 text-slate-700 dark:text-white'
+                                    }`}
+                                >
+                                    {isBorrowed ? 'Return' : 'Borrow'}
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onRead(result);
+                                    }}
+                                    className={`flex-1 py-1.5 px-2 md:px-3 border rounded-lg text-[10px] md:text-xs font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                            isPtarDigital 
+                                            ? 'bg-purple-600/10 dark:bg-purple-600/20 hover:bg-purple-500 hover:text-white border-purple-500/50 text-purple-700 dark:text-purple-300' 
+                                            : 'bg-cyan-600/10 dark:bg-cyan-600/20 hover:bg-cyan-500 hover:text-white dark:hover:text-black border-cyan-500/50 text-cyan-700 dark:text-cyan-300'
+                                    }`}
+                                >
+                                        <i className="fa-solid fa-book-reader"></i> {isPtarDigital ? 'View' : 'Read'}
+                                </button>
+                            )}
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleLike(result);
+                                }}
+                                className={`w-8 flex items-center justify-center rounded-lg transition-colors ${isLiked ? 'bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30' : 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-400 dark:text-white'}`}
+                            >
+                                <i className={`${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const UnifiedSearch = ({ borrowedBooks, onToggleBorrow, likedBooks, onToggleLike, onRenew }) => {
             const [query, setQuery] = useState('');
             const [activeGenre, setActiveGenre] = useState(Genre.ALL); 
             const [activeSource, setActiveSource] = useState('ALL'); // New State for Source Filter
@@ -1206,115 +1983,6 @@
             if (activeSource === 'ALL' || activeSource === 'PTAR_DIGITAL') totalVisible += ptarDigitalResults.length;
             if (activeSource === 'ALL' || activeSource === 'OPEN_LIBRARY') totalVisible += openLibraryResults.length;
 
-
-            const ResultCard = ({ result, onBookClick }) => {
-                const isBorrowed = borrowedBooks.has(result.id);
-                const isLiked = likedBooks.has(result.id);
-                const isPhysical = result.type === ResourceType.PHYSICAL;
-                const isPtarDigital = result.availability === 'PTAR Digital';
-
-                return (
-                    <div 
-                        className="flex flex-row bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden hover:bg-white dark:hover:bg-white/10 hover:shadow-xl dark:hover:border-purple-500/30 transition-all duration-300 group h-full cursor-pointer relative shadow-sm"
-                        onClick={() => onBookClick(result)}
-                    >
-                        <div className="w-24 md:w-32 flex-shrink-0 relative bg-slate-100 dark:bg-black/20">
-                            {result.coverImage !== 'placeholder' ? (
-                                <img 
-                                    src={result.coverImage} 
-                                    alt={result.title} 
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-500 bg-white/5">
-                                    <div className="text-center p-2">
-                                        <i className={`fa-solid ${isPhysical ? 'fa-book' : 'fa-laptop-code'} text-2xl mb-1`}></i>
-                                        <div className="text-[9px] uppercase font-bold text-gray-600">{result.type}</div>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            <div className="absolute top-2 left-2 flex flex-col gap-1">
-                                {isPhysical ? (
-                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-amber-500/90 text-black text-[9px] md:text-[10px] font-bold rounded shadow-md">Physical</span>
-                                ) : isPtarDigital ? (
-                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-purple-500/90 text-white text-[9px] md:text-[10px] font-bold rounded shadow-md">PTAR Online</span>
-                                ) : (
-                                    <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-cyan-500/90 text-black text-[9px] md:text-[10px] font-bold rounded shadow-md">Open Web</span>
-                                )}
-                            </div>
-                        </div>
-                        
-                        <div className="p-3 md:p-4 flex flex-col justify-between flex-1 min-w-0">
-                            <div>
-                                <div className="text-[9px] md:text-[10px] text-purple-600 dark:text-purple-300 uppercase font-bold tracking-wider mb-1 truncate">{result.genre}</div>
-                                <h4 className="text-slate-900 dark:text-white font-bold text-sm md:text-base leading-tight mb-1 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">{result.title}</h4>
-                                <p className="text-slate-500 dark:text-gray-400 text-xs mb-2 truncate">{result.author} • {result.year}</p>
-                                
-                                {isPhysical ? (
-                                    <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-gray-300 bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
-                                        <i className="fa-solid fa-location-dot mt-0.5 text-amber-500 dark:text-amber-400 flex-shrink-0"></i>
-                                        <div className="overflow-hidden min-w-0">
-                                            <p className="font-medium text-amber-700 dark:text-amber-200 truncate">{result.shelfLocation}</p>
-                                            <p className="text-[10px] opacity-70 truncate">Call No: {result.callNumber}</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-gray-300 bg-slate-100 dark:bg-white/5 p-2 rounded-lg">
-                                        {isPtarDigital ? <i className="fa-solid fa-lock text-purple-600 dark:text-purple-400 flex-shrink-0"></i> : <i className="fa-solid fa-globe text-cyan-600 dark:text-cyan-400 flex-shrink-0"></i>}
-                                        <p className={`font-medium truncate ${isPtarDigital ? 'text-purple-700 dark:text-purple-200' : 'text-cyan-700 dark:text-cyan-200'}`}>
-                                            {isPtarDigital ? 'Authorized Student Access' : 'Public Digital Access'}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-3 flex gap-2">
-                                {isPhysical ? (
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation(); 
-                                            onToggleBorrow(result);
-                                        }}
-                                        className={`flex-1 py-1.5 px-2 md:px-3 border rounded-lg text-[10px] md:text-xs font-medium transition-all whitespace-nowrap ${
-                                            isBorrowed 
-                                                ? 'bg-red-500/10 dark:bg-red-500/20 hover:bg-red-500 hover:text-white border-red-500/50 text-red-600 dark:text-red-300' 
-                                                : 'bg-slate-100 dark:bg-white/10 hover:bg-green-500 hover:text-white dark:hover:text-black border-slate-200 dark:border-white/20 text-slate-700 dark:text-white'
-                                        }`}
-                                    >
-                                        {isBorrowed ? 'Return' : 'Borrow'}
-                                    </button>
-                                ) : (
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleReadBook(result);
-                                        }}
-                                        className={`flex-1 py-1.5 px-2 md:px-3 border rounded-lg text-[10px] md:text-xs font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-                                             isPtarDigital 
-                                                ? 'bg-purple-600/10 dark:bg-purple-600/20 hover:bg-purple-500 hover:text-white border-purple-500/50 text-purple-700 dark:text-purple-300' 
-                                                : 'bg-cyan-600/10 dark:bg-cyan-600/20 hover:bg-cyan-500 hover:text-white dark:hover:text-black border-cyan-500/50 text-cyan-700 dark:text-cyan-300'
-                                        }`}
-                                    >
-                                            <i className="fa-solid fa-book-reader"></i> {isPtarDigital ? 'View' : 'Read'}
-                                    </button>
-                                )}
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onToggleLike(result);
-                                    }}
-                                    className={`w-8 flex items-center justify-center rounded-lg transition-colors ${isLiked ? 'bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30' : 'bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-400 dark:text-white'}`}
-                                >
-                                    <i className={`${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
             const filters = Object.values(Genre);
 
             // Source Navigation Data
@@ -1407,7 +2075,16 @@
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
                                     {physicalResults.map((result, idx) => (
-                                        <ResultCard key={result.id || `phy_${idx}`} result={result} onBookClick={setSelectedBook} />
+                                        <ResultCard 
+                                            key={result.id || `phy_${idx}`} 
+                                            result={result} 
+                                            onBookClick={setSelectedBook} 
+                                            isBorrowed={borrowedBooks.has(result.id)}
+                                            isLiked={likedBooks.has(result.id)}
+                                            onToggleBorrow={onToggleBorrow}
+                                            onToggleLike={onToggleLike}
+                                            onRead={handleReadBook}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -1423,7 +2100,16 @@
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
                                     {ptarDigitalResults.map((result, idx) => (
-                                        <ResultCard key={result.id || `dig_${idx}`} result={result} onBookClick={setSelectedBook} />
+                                        <ResultCard 
+                                            key={result.id || `dig_${idx}`} 
+                                            result={result} 
+                                            onBookClick={setSelectedBook} 
+                                            isBorrowed={borrowedBooks.has(result.id)}
+                                            isLiked={likedBooks.has(result.id)}
+                                            onToggleBorrow={onToggleBorrow}
+                                            onToggleLike={onToggleLike}
+                                            onRead={handleReadBook}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -1440,7 +2126,16 @@
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-6">
                                     {openLibraryResults.map((result, idx) => (
-                                        <ResultCard key={result.id || `ol_${idx}`} result={result} onBookClick={setSelectedBook} />
+                                        <ResultCard 
+                                            key={result.id || `ol_${idx}`} 
+                                            result={result} 
+                                            onBookClick={setSelectedBook} 
+                                            isBorrowed={borrowedBooks.has(result.id)}
+                                            isLiked={likedBooks.has(result.id)}
+                                            onToggleBorrow={onToggleBorrow}
+                                            onToggleLike={onToggleLike}
+                                            onRead={handleReadBook}
+                                        />
                                     ))}
                                 </div>
                                 
@@ -1468,6 +2163,7 @@
                         onToggleBorrow={onToggleBorrow}
                         isBorrowed={selectedBook ? borrowedBooks.has(selectedBook.id) : false}
                         onRead={handleReadBook}
+                        onRenew={onRenew}
                     />
 
                     {/* Reader Overlay for PTAR Books */}
@@ -1477,184 +2173,7 @@
                 </div>
             );
         };
-
-        const DigitalID = ({ user }) => {
-            const [scanning, setScanning] = useState(false);
-            const [scanSuccess, setScanSuccess] = useState(false);
-
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${user.studentId}&color=6d28d9&bgcolor=ffffff`;
-
-            const handleScan = () => {
-                if (scanning || scanSuccess) return;
-                setScanning(true);
-                setTimeout(() => {
-                    setScanning(false);
-                    setScanSuccess(true);
-                    setTimeout(() => setScanSuccess(false), 3000);
-                }, 2000);
-            };
-
-            return (
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-4 md:p-6 flex flex-col items-center shadow-xl relative overflow-hidden group h-full transition-colors">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-                    
-                    <div className="w-full flex justify-between items-center mb-4">
-                        <h3 className="text-slate-800 dark:text-white font-semibold flex items-center gap-2 text-sm md:text-base">
-                            <i className="fa-solid fa-id-card text-purple-600 dark:text-purple-400"></i> Digital ID
-                        </h3>
-                        <span className={`text-[10px] md:text-xs px-2 py-1 rounded border transition-colors ${
-                            scanSuccess 
-                                ? 'bg-green-500/30 text-green-700 dark:text-green-200 border-green-500' 
-                                : 'bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30'
-                        }`}>
-                            {scanSuccess ? 'VERIFIED' : 'Active'}
-                        </span>
-                    </div>
-
-                    <div className="relative bg-white p-2 md:p-3 rounded-xl mb-4 shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform duration-300 overflow-hidden border border-slate-100 dark:border-transparent">
-                        <img src={qrUrl} alt="Student ID QR" className="w-24 h-24 md:w-32 md:h-32" />
-                        
-                        {scanning && (
-                            <div className="absolute inset-0 bg-purple-500/20">
-                                <div className="absolute w-full h-1 bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-scan"></div>
-                            </div>
-                        )}
-                        
-                        {scanSuccess && (
-                            <div className="absolute inset-0 bg-green-500/90 flex items-center justify-center flex-col animate-fade-in">
-                                <i className="fa-solid fa-circle-check text-white text-3xl md:text-4xl mb-2"></i>
-                                <span className="text-white font-bold text-xs md:text-sm">Granted</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <p className="text-slate-600 dark:text-gray-300 font-mono text-base md:text-lg tracking-wider mb-4">{user.studentId}</p>
-
-                    <button 
-                        onClick={handleScan}
-                        disabled={scanning || scanSuccess}
-                        className={`w-full py-2 md:py-3 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2 text-sm md:text-base ${
-                            scanSuccess 
-                                ? 'bg-green-600 text-white cursor-default'
-                                : scanning 
-                                    ? 'bg-slate-400 dark:bg-gray-600 text-white dark:text-gray-300 cursor-wait' 
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-900/40'
-                        }`}
-                    >
-                        {scanning ? <><i className="fa-solid fa-spinner fa-spin"></i> Connecting...</> : 
-                         scanSuccess ? <><i className="fa-solid fa-check"></i> Scanned</> : 
-                         <><i className="fa-solid fa-expand"></i> Scan at Kiosk</>}
-                    </button>
-                </div>
-            );
-        };
-
-        const RoomBooking = ({ onBookClick, rooms }) => {
-            return (
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-4 md:p-6 shadow-xl h-full transition-colors">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-slate-800 dark:text-white font-semibold flex items-center gap-2 text-sm md:text-base">
-                            <i className="fa-solid fa-people-roof text-pink-500 dark:text-pink-400"></i> Smart Booking
-                        </h3>
-                        <div className="flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                             <span className="text-[10px] text-green-600 dark:text-green-400 uppercase font-bold tracking-wider">Live Availability</span>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 md:gap-4">
-                        {rooms.map((room) => (
-                            <div 
-                                key={room.id} 
-                                className="flex items-center justify-between p-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 transition-colors"
-                            >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className={`w-3 h-3 rounded-full shadow-lg flex-shrink-0 ${
-                                        room.status === 'Available' ? 'bg-green-500 shadow-green-500/50' : 
-                                        room.status === 'Occupied' ? 'bg-red-500 shadow-red-500/50' : 'bg-gray-500'
-                                    }`}></div>
-                                    <div className="overflow-hidden">
-                                        <h4 className="text-slate-800 dark:text-white text-xs md:text-sm font-medium truncate">{room.name}</h4>
-                                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-gray-400">Cap: {room.capacity}</p>
-                                    </div>
-                                </div>
-
-                                {room.status === 'Available' ? (
-                                    <button 
-                                        onClick={() => onBookClick(room)}
-                                        className="px-2 py-1 md:px-3 md:py-1.5 bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30 rounded-lg text-[10px] md:text-xs font-semibold hover:bg-green-500 hover:text-white dark:hover:text-black transition-all whitespace-nowrap ml-2"
-                                    >
-                                        Book Now
-                                    </button>
-                                ) : room.status === 'Occupied' ? (
-                                    <span className="text-[10px] md:text-xs text-red-500 dark:text-red-400 font-medium whitespace-nowrap ml-2">Until {room.nextAvailable}</span>
-                                ) : (
-                                    <span className="text-[10px] md:text-xs text-slate-400 dark:text-gray-500 font-medium ml-2">Closed</span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-
-        const Analytics = () => {
-            const [data, setData] = useState(initialAnalyticsData);
-
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setData(prevData => prevData.map(item => ({
-                        ...item,
-                        value: Math.max(10, item.value + Math.floor(Math.random() * 30) - 10)
-                    })));
-                }, 3000);
-                return () => clearInterval(interval);
-            }, []);
-
-            const maxVal = Math.max(...data.map(d => d.value));
-
-            return (
-                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-4 md:p-6 shadow-xl h-full flex flex-col transition-colors">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-slate-800 dark:text-white font-semibold flex items-center gap-2 text-sm md:text-base">
-                            <i className="fa-solid fa-chart-pie text-cyan-500 dark:text-cyan-400"></i> Live Analytics
-                        </h3>
-                        <div className="flex items-center gap-2">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                            </span>
-                            <span className="text-[10px] text-green-600 dark:text-green-400 uppercase tracking-wider font-bold">Live</span>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 w-full flex items-end justify-between gap-2 md:gap-4 mt-4 px-1 md:px-2">
-                        {data.map((item, index) => {
-                            const heightPercentage = (item.value / (maxVal * 1.2)) * 100;
-                            return (
-                                <div key={index} className="flex flex-col items-center flex-1 group">
-                                    <div className="relative w-full flex justify-center h-28 md:h-40 items-end">
-                                        <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] px-2 py-1 rounded pointer-events-none whitespace-nowrap border border-white/10 z-10">
-                                            {item.value} books
-                                        </div>
-                                        <div 
-                                            className={`w-full max-w-[20px] md:max-w-[40px] rounded-t-lg transition-all duration-700 ease-out ${item.color} opacity-80 group-hover:opacity-100`}
-                                            style={{ height: `${heightPercentage}%`, minHeight: '4px' }}
-                                        ></div>
-                                    </div>
-                                    <span className="text-[9px] md:text-xs text-slate-500 dark:text-gray-400 mt-2 font-medium truncate w-full text-center">{item.name}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    
-                    <p className="text-center text-[10px] text-slate-400 dark:text-gray-500 mt-6 pt-4 border-t border-slate-200 dark:border-white/5">
-                        Real-time RFID Tracking
-                    </p>
-                </div>
-            );
-        };
-
+            
         const App = () => {
             const [isLoggedIn, setIsLoggedIn] = useState(false);
             const [user, setUser] = useState(null);
@@ -1663,6 +2182,14 @@
             const [notifications, setNotifications] = useState([]);
             const [borrowedBooks, setBorrowedBooks] = useState(new Set());
             const [likedBooks, setLikedBooks] = useState(new Set());
+
+            // User Profile State
+            const [profileOpen, setProfileOpen] = useState(false);
+
+            // Loan Registration State
+            const [loanModalOpen, setLoanModalOpen] = useState(false);
+            const [loanBook, setLoanBook] = useState(null);
+            const [loanMode, setLoanMode] = useState('BORROW'); // BORROW or RENEW
 
             // Theme State
             const [theme, setTheme] = useState('dark');
@@ -1710,11 +2237,11 @@
                     const updatedRooms = baseRooms.map((room, index) => {
                         // Check if closed
                         if (hour < openHour || hour >= closeHour) {
-                             return { 
-                                 ...room, 
-                                 status: 'Closed', 
-                                 nextAvailable: '8:00 AM' 
-                             };
+                            return { 
+                                ...room, 
+                                status: 'Closed', 
+                                nextAvailable: '8:00 AM' 
+                            };
                         }
 
                         // Simulate status based on time
@@ -1774,17 +2301,41 @@
                 setNotifications(prev => [newNotif, ...prev]);
             };
 
+            // Initial Trigger for Borrow/Return
             const toggleBorrow = (book) => {
-                const timeNow = getMalaysiaTime();
                 const newBorrowed = new Set(borrowedBooks);
                 if (newBorrowed.has(book.id)) {
+                    // Return process (simple toggle for now, usually needs check-in)
                     newBorrowed.delete(book.id);
-                    addNotification(`Returned "${book.title}" at ${timeNow}.`);
+                    addNotification(`Returned "${book.title}".`);
+                    setBorrowedBooks(newBorrowed);
                 } else {
-                    newBorrowed.add(book.id);
-                    addNotification(`Borrowed "${book.title}" at ${timeNow}. Due in 14 days.`);
+                    // Borrow process -> Open Form
+                    setLoanBook(book);
+                    setLoanMode('BORROW');
+                    setLoanModalOpen(true);
                 }
-                setBorrowedBooks(newBorrowed);
+            };
+
+            const handleRenewRequest = (book) => {
+                setLoanBook(book);
+                setLoanMode('RENEW');
+                setLoanModalOpen(true);
+            };
+
+            const handleLoanConfirm = (loanData) => {
+                const { bookId, mode, courseCode, returnDate } = loanData;
+                
+                if (mode === 'BORROW') {
+                    const newBorrowed = new Set(borrowedBooks);
+                    newBorrowed.add(bookId);
+                    setBorrowedBooks(newBorrowed);
+                    addNotification(`Borrowed "${loanBook.title}" for course ${courseCode}. Due: ${returnDate}`);
+                } else {
+                    addNotification(`Renewed "${loanBook.title}" successfully. New Due Date: ${returnDate}`);
+                }
+                setLoanModalOpen(false);
+                setLoanBook(null);
             };
 
             const toggleLike = (book) => {
@@ -1831,6 +2382,7 @@
                                 notifications={notifications}
                                 theme={theme}
                                 toggleTheme={toggleTheme}
+                                onOpenProfile={() => setProfileOpen(true)}
                             />
 
                             <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide">
@@ -1853,6 +2405,7 @@
                                                 onToggleBorrow={toggleBorrow} 
                                                 likedBooks={likedBooks}
                                                 onToggleLike={toggleLike}
+                                                onRenew={handleRenewRequest}
                                             />
                                         </div>
 
@@ -1878,6 +2431,7 @@
                                         onToggleBorrow={toggleBorrow}
                                         likedBooks={likedBooks}
                                         onToggleLike={toggleLike}
+                                        onRenew={handleRenewRequest}
                                     />
                                 </div>}
                                 {activeTab === 'rooms' && (
@@ -1895,6 +2449,11 @@
                                         <Analytics />
                                     </div>
                                 )}
+                                {activeTab === 'feedback' && (
+                                    <div className="h-full pb-10">
+                                        <FeedbackView />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Global Chatbot */}
@@ -1907,6 +2466,24 @@
                                 user={user}
                                 onClose={() => setBookingModalOpen(false)}
                                 onConfirm={handleBookingConfirm}
+                            />
+
+                            {/* User Profile Modal */}
+                            <UserProfileModal 
+                                user={user}
+                                isOpen={profileOpen}
+                                onClose={() => setProfileOpen(false)}
+                                history={notifications}
+                            />
+
+                            {/* Loan Form Modal */}
+                            <LoanFormModal 
+                                user={user}
+                                book={loanBook}
+                                isOpen={loanModalOpen}
+                                mode={loanMode}
+                                onClose={() => setLoanModalOpen(false)}
+                                onConfirm={handleLoanConfirm}
                             />
                         </main>
                     </div>
