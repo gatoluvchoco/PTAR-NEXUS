@@ -333,7 +333,7 @@
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i className={`fa-solid ${userType === 'student' ? 'fa-id-card' : 'fa-user-tie'} text-slate-400 dark:text-slate-500`}></i>
                                     </div>
-                                    <input type="text" required value={id} onChange={(e) => setId(e.target.value)} className="w-full bg-slate-50 dark:bg-[#232433] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors" placeholder={userType === 'student' ? "2024441674" : "241791"} />
+                                    <input type="text" required value={id} onChange={(e) => setId(e.target.value)} className="w-full bg-slate-50 dark:bg-[#232433] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors" placeholder={userType === 'student' ? "Enter Student ID" : "241791"} />
                                 </div>
                             </div>
                             {error && (
@@ -438,7 +438,7 @@
                     {/* Access Card Container */}
                     <div 
                         className={`relative flex-1 rounded-3xl perspective-1000 group ${enableScan ? 'cursor-pointer' : 'cursor-default'}`}
-                        onClick={handleCardClick}
+                        onClick={enableScan ? handleCardClick : undefined}
                     >
                         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
                             
