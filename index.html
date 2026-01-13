@@ -223,7 +223,6 @@
         };
 
         // --- Inventory Data ---
-        // ADDED SUMMARIES HERE
         const localPhysicalInventory = [
             { id: 'local_1', source: SourceCategory.UITM_PHYSICAL, title: 'Management of Digital Transformation', author: 'Dr. Marlita Mad Yusuf', year: 2024, type: ResourceType.PHYSICAL, genre: Genre.BUSINESS, shelfLocation: 'Level 2, Aisle 4, Shelf B', callNumber: 'HD30.2 .M37 2024', availability: 'Available', coverImage: 'https://covers.openlibrary.org/b/isbn/9783030880362-M.jpg', summary: 'This comprehensive guide explores the strategies, challenges, and opportunities of digital transformation in modern business environments, offering practical frameworks for leaders.' },
             { id: 'local_11', source: SourceCategory.UITM_PHYSICAL, title: 'Malaysian Economy: Past, Present & Future', author: 'Prof. Jomo K.S.', year: 2020, type: ResourceType.PHYSICAL, genre: Genre.BUSINESS, shelfLocation: 'Level 1, Aisle 2, Shelf F', callNumber: 'HC445.5 .J66 2020', availability: 'Available', coverImage: 'https://m.media-amazon.com/images/I/51a3kK8+l+L._AC_UF1000,1000_QL80_.jpg', summary: 'A comprehensive economic analysis of Malaysia, tracing its development from independence to the present day and offering projections for future growth.' },
@@ -269,7 +268,7 @@
                                 name: "Marlita Mat Yusof",
                                 studentId: id,
                                 department: 'Faculty of Business Management',
-                                avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200', // Professional Photo
+                                avatarUrl: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=200', // Cool Cat with Glasses
                                 role: 'Lecturer'
                             });
                         } else {
@@ -348,7 +347,6 @@
                         </form>
                         <div className="mt-8 text-center space-y-2">
                             <p className="text-[10px] text-slate-500 dark:text-slate-600 uppercase tracking-wider">Authorized Access Only</p>
-                            <p className="text-[10px] text-slate-600 dark:text-slate-700">Try: {userType === 'student' ? '2024441674' : '241791'}</p>
                         </div>
                      </div>
                 </div>
@@ -410,15 +408,14 @@
             );
         };
 
-        // 3. DigitalID Widget - UPDATED: Added onCardClick support for Dashboard interactions
-        const DigitalIDWidget = ({ user, onScan, enableScan = true, onCardClick }) => {
+        // 3. DigitalID Widget - UPDATED: Logic to handle no-op on dashboard and removed "View Profile"
+        const DigitalIDWidget = ({ user, onScan, enableScan = true }) => {
             const [isFlipped, setIsFlipped] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
 
             const handleCardClick = () => {
-                // If scan is disabled (Dashboard mode), trigger onCardClick if provided
+                // STRICT LOGIC: If scan is disabled (Dashboard mode), explicitly DO NOTHING.
                 if (!enableScan) {
-                    if (onCardClick) onCardClick();
                     return;
                 }
                 
@@ -440,7 +437,7 @@
                 <div className="h-full flex flex-col gap-4 animate-fade-in">
                     {/* Access Card Container */}
                     <div 
-                        className={`relative flex-1 rounded-3xl perspective-1000 group cursor-pointer`}
+                        className={`relative flex-1 rounded-3xl perspective-1000 group ${enableScan ? 'cursor-pointer' : 'cursor-default'}`}
                         onClick={handleCardClick}
                     >
                         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
@@ -470,7 +467,9 @@
                                     <div className="flex-1 min-w-0">
                                         <h2 className="text-white font-bold text-lg leading-tight truncate uppercase">{user.name}</h2>
                                         <p className="text-white/80 font-mono text-sm my-0.5">{user.studentId}</p>
-                                        <span className="inline-block px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 rounded text-[9px] font-bold text-emerald-400 uppercase tracking-wide">Active {user.role || 'Student'}</span>
+                                        <span className="inline-block px-2 py-0.5 bg-emerald-500/20 border border-emerald-500/40 rounded text-[9px] font-bold text-emerald-400 uppercase tracking-wide">
+                                            {user.role === 'Lecturer' ? 'Active Lecturer' : 'Active Student'}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -487,10 +486,6 @@
                                                 <p className="text-white/60 text-[10px] mb-1">Tap to Scan</p>
                                                 <i className="fa-solid fa-qrcode text-white text-xl"></i>
                                             </>
-                                        )}
-                                        {/* If scan disabled (dashboard), show click hint */}
-                                        {!enableScan && (
-                                            <p className="text-white/40 text-[9px] font-bold uppercase hover:text-white transition-colors">View Profile <i className="fa-solid fa-arrow-right ml-1"></i></p>
                                         )}
                                     </div>
                                 </div>
@@ -1067,7 +1062,9 @@
                             </div>
                             <h3 className="text-slate-800 dark:text-white font-bold text-center text-lg">{user.name}</h3>
                             <p className="text-purple-600 dark:text-purple-400 text-sm font-mono mt-1">{user.studentId}</p>
-                            <span className="mt-4 px-3 py-1 bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-full border border-green-500/30">Active Student</span>
+                            <span className="mt-4 px-3 py-1 bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                                {user.role === 'Lecturer' ? 'Active Lecturer' : 'Active Student'}
+                            </span>
                         </div>
                         <div className="flex-1 p-8 overflow-y-auto">
                              <div className="mb-8">
@@ -1075,7 +1072,9 @@
                                 <div className="grid grid-cols-2 gap-4">
                                     <div><p className="text-[10px] text-slate-500 uppercase">Department</p><p className="text-sm text-slate-700 dark:text-white">{user.department}</p></div>
                                     <div><p className="text-[10px] text-slate-500 uppercase">Semester</p><p className="text-sm text-slate-700 dark:text-white">03</p></div>
-                                    <div className="col-span-2"><p className="text-[10px] text-slate-500 uppercase">Email</p><p className="text-sm text-slate-700 dark:text-white">{user.studentId}@student.uitm.edu.my</p></div>
+                                    {user.role !== 'Lecturer' && (
+                                        <div className="col-span-2"><p className="text-[10px] text-slate-500 uppercase">Email</p><p className="text-sm text-slate-700 dark:text-white">{user.studentId}@student.uitm.edu.my</p></div>
+                                    )}
                                 </div>
                              </div>
                              
@@ -1511,7 +1510,6 @@
                                                 user={user} 
                                                 onScan={handleScanSuccess} 
                                                 enableScan={false} 
-                                                onCardClick={() => setProfileOpen(true)} 
                                             />
                                         </div>
                                         <div className="lg:col-span-5 h-80 md:h-full"><SmartBookingWidget rooms={rooms} onBookClick={handleRoomClick} /></div>
