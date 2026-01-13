@@ -779,9 +779,11 @@
         };
 
         // 7. Borrow and Return Section Modal (REFACTORED to fix static flag error)
-        const BorrowReturnModal = ({ book, isOpen, onClose, onBorrow, onReturn, onRenew, isBorrowed, borrowedDetails, user }) => {
+        const BorrowReturnModal = ({ book, isOpen, onClose, onBorrow, onReturn, onRenew, isBorrowed, borrowedDetails, user, addNotification }) => {
             const [courseCode, setCourseCode] = useState('');
             const [returnDate, setReturnDate] = useState(getISODate(7));
+            const [showFinePayment, setShowFinePayment] = useState(false);
+            const [simulateLate, setSimulateLate] = useState(false); // For demo purposes
 
             // Sync effect
             useEffect(() => {
@@ -793,6 +795,9 @@
                         setCourseCode('');
                         setReturnDate(getISODate(7));
                     }
+                    // Reset states on open
+                    setShowFinePayment(false);
+                    setSimulateLate(false);
                 }
             }, [isOpen, book, isBorrowed, borrowedDetails]);
 
@@ -809,100 +814,152 @@
                 onBorrow(book, { courseCode, returnDate });
             };
 
+            const checkReturnStatus = () => {
+                const today = getISODate();
+                const dueDate = borrowedDetails?.dueDate || today;
+                
+                // Logic: If dueDate is strictly BEFORE today, it is late.
+                // We also allow manual simulation via checkbox for demo.
+                if ((new Date(dueDate) < new Date(today)) || simulateLate) {
+                    setShowFinePayment(true);
+                } else {
+                    onReturn(book);
+                }
+            };
+            
+            const handleFinePayment = () => {
+                // Simulate payment processing
+                setTimeout(() => {
+                    addNotification("Fine of RM 10.00 paid successfully.");
+                    onReturn(book);
+                }, 500);
+            };
+
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
                     <div className="relative bg-white dark:bg-[#181926] border border-gray-200 dark:border-white/10 rounded-2xl w-full max-w-lg shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{isPhysical ? 'Borrow and Return Section' : 'Book Details'}</h3>
-                            <button onClick={onClose}><i className="fa-solid fa-xmark text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"></i></button>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-[#232433] rounded-xl p-4 flex gap-4 mb-6 border border-gray-200 dark:border-white/5">
-                            <img src={displayImage} className="w-16 h-24 object-cover rounded-md shadow-md" onError={(e) => e.target.src=GENERIC_COVER} />
-                            <div>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">{book.type}</span>
-                                <h4 className="text-slate-800 dark:text-white font-bold mb-1 line-clamp-2">{book.title}</h4>
-                                <p className="text-xs text-slate-500">{book.author}</p>
-                            </div>
-                        </div>
                         
-                        <div className="space-y-4 mb-6">
-                             <div className="p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-500/10">
-                                <h5 className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase mb-1">Synopsis</h5>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-40 overflow-y-auto">
-                                    {book.summary || "No summary available for this resource."}
-                                </p>
-                             </div>
-                        </div>
-
-                        {!isPhysical && (
-                            <div className="space-y-4">
-                                <button onClick={() => { window.open(book.url || '#', '_blank'); onClose(); }} className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg shadow-purple-600/20">Read Now</button>
-                            </div>
-                        )}
-
-                        {isPhysical && !isBorrowed && (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Full Name</label>
-                                        <input type="text" value={user.name} readOnly className="w-full bg-gray-100 dark:bg-[#0f1016] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-500 dark:text-slate-400 focus:outline-none cursor-not-allowed" />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Course Code</label>
-                                        <input type="text" value={courseCode} onChange={(e) => setCourseCode(e.target.value)} placeholder="e.g. CSC253" className="w-full bg-white dark:bg-[#232433] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                                    </div>
+                        {/* FINE PAYMENT OVERLAY */}
+                        {showFinePayment ? (
+                            <div className="flex flex-col items-center justify-center text-center animate-scale-in">
+                                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-500 mb-4 animate-pulse-slow">
+                                    <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-1">Overdue Return</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">This item is returned past its due date.</p>
+                                
+                                <div className="bg-slate-50 dark:bg-[#232433] rounded-xl p-6 w-full mb-6 border border-gray-200 dark:border-white/5 relative overflow-hidden">
+                                     <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+                                     <p className="text-xs text-slate-500 uppercase font-bold mb-1">Total Fine Amount</p>
+                                     <h2 className="text-3xl font-mono font-bold text-slate-800 dark:text-white">RM 10.00</h2>
+                                </div>
+                                
+                                <button onClick={handleFinePayment} className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold shadow-lg shadow-red-500/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+                                    <i className="fa-regular fa-credit-card"></i> Pay & Return Book
+                                </button>
+                                <button onClick={() => setShowFinePayment(false)} className="mt-4 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">Cancel</button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">{isPhysical ? 'Borrow and Return Section' : 'Book Details'}</h3>
+                                    <button onClick={onClose}><i className="fa-solid fa-xmark text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"></i></button>
+                                </div>
+                                <div className="bg-gray-50 dark:bg-[#232433] rounded-xl p-4 flex gap-4 mb-6 border border-gray-200 dark:border-white/5">
+                                    <img src={displayImage} className="w-16 h-24 object-cover rounded-md shadow-md" onError={(e) => e.target.src=GENERIC_COVER} />
                                     <div>
-                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Borrowing Date</label>
-                                        <div className="bg-gray-100 dark:bg-[#0f1016] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2"><i className="fa-regular fa-calendar"></i> {formatDateDisplay(getISODate())}</div>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Return Date</label>
-                                        <input type="date" value={returnDate} min={getISODate(1)} onChange={(e) => setReturnDate(e.target.value)} className="w-full bg-white dark:bg-[#232433] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">{book.type}</span>
+                                        <h4 className="text-slate-800 dark:text-white font-bold mb-1 line-clamp-2">{book.title}</h4>
+                                        <p className="text-xs text-slate-500">{book.author}</p>
                                     </div>
                                 </div>
                                 
-                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex gap-3 mt-2">
-                                    <i className="fa-solid fa-circle-info text-blue-500 dark:text-blue-400 mt-0.5 text-xs"></i>
-                                    <p className="text-[11px] text-blue-800 dark:text-blue-200 leading-tight">By borrowing this item, you agree to return it by the selected date. Fines apply for late returns.</p>
-                                </div>
-                                
-                                <div className="flex justify-end gap-3 pt-2">
-                                    <button onClick={onClose} className="px-4 py-3 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors">Cancel</button>
-                                    <button onClick={handleBorrowSubmit} className="px-8 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-lg shadow-purple-900/50 transition-colors">Confirm Borrow</button>
-                                </div>
-                            </div>
-                        )}
-
-                        {isPhysical && isBorrowed && (
-                            <div className="space-y-6">
-                                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                                <div className="flex items-center gap-2 mb-2 text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
-                                    <i className="fa-solid fa-check-circle"></i> Currently Borrowed
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><span className="text-slate-500 dark:text-slate-400 text-xs block">Course Code</span><span className="font-mono text-slate-800 dark:text-white font-bold">{borrowedDetails?.courseCode || 'N/A'}</span></div>
-                                    <div><span className="text-slate-500 dark:text-slate-400 text-xs block">Due Date</span><span className="font-mono text-slate-800 dark:text-white font-bold">{formatDateDisplay(borrowedDetails?.dueDate) || 'N/A'}</span></div>
-                                </div>
-                                </div>
-
-                                <div className="border-t border-gray-200 dark:border-white/5 pt-4">
-                                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-3">Renewal Options</h4>
-                                <div className="flex items-center justify-between bg-slate-50 dark:bg-[#232433] p-3 rounded-lg border border-gray-200 dark:border-white/5">
-                                    <div>
-                                        <p className="text-xs text-slate-800 dark:text-white font-bold">Extend for 7 Days</p>
-                                        <p className="text-[10px] text-slate-500">New Due Date: <span className="text-purple-500">{formatDateDisplay(getISODate(7))}</span></p>
+                                <div className="space-y-4 mb-6">
+                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-500/10">
+                                        <h5 className="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase mb-1">Synopsis</h5>
+                                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-40 overflow-y-auto">
+                                            {book.summary || "No summary available for this resource."}
+                                        </p>
                                     </div>
-                                    <button onClick={() => onRenew(book)} className="px-4 py-2 bg-purple-600/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white text-xs font-bold rounded-lg border border-purple-500/20 transition-all">Renew</button>
-                                </div>
                                 </div>
 
-                                <div className="flex justify-end gap-3 pt-2">
-                                <button onClick={() => onReturn(book)} className="w-full py-3 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold border border-red-500/20 transition-all">Return Book</button>
-                                </div>
-                            </div>
+                                {!isPhysical && (
+                                    <div className="space-y-4">
+                                        <button onClick={() => { window.open(book.url || '#', '_blank'); onClose(); }} className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg shadow-purple-600/20">Read Now</button>
+                                    </div>
+                                )}
+
+                                {isPhysical && !isBorrowed && (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Full Name</label>
+                                                <input type="text" value={user.name} readOnly className="w-full bg-gray-100 dark:bg-[#0f1016] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-500 dark:text-slate-400 focus:outline-none cursor-not-allowed" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Course Code</label>
+                                                <input type="text" value={courseCode} onChange={(e) => setCourseCode(e.target.value)} placeholder="e.g. CSC253" className="w-full bg-white dark:bg-[#232433] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Borrowing Date</label>
+                                                <div className="bg-gray-100 dark:bg-[#0f1016] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2"><i className="fa-regular fa-calendar"></i> {formatDateDisplay(getISODate())}</div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Return Date</label>
+                                                <input type="date" value={returnDate} min={getISODate(1)} onChange={(e) => setReturnDate(e.target.value)} className="w-full bg-white dark:bg-[#232433] border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex gap-3 mt-2">
+                                            <i className="fa-solid fa-circle-info text-blue-500 dark:text-blue-400 mt-0.5 text-xs"></i>
+                                            <p className="text-[11px] text-blue-800 dark:text-blue-200 leading-tight">By borrowing this item, you agree to return it by the selected date. Fines apply for late returns.</p>
+                                        </div>
+                                        
+                                        <div className="flex justify-end gap-3 pt-2">
+                                            <button onClick={onClose} className="px-4 py-3 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors">Cancel</button>
+                                            <button onClick={handleBorrowSubmit} className="px-8 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-lg shadow-purple-900/50 transition-colors">Confirm Borrow</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isPhysical && isBorrowed && (
+                                    <div className="space-y-6">
+                                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+                                        <div className="flex items-center gap-2 mb-2 text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider">
+                                            <i className="fa-solid fa-check-circle"></i> Currently Borrowed
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div><span className="text-slate-500 dark:text-slate-400 text-xs block">Course Code</span><span className="font-mono text-slate-800 dark:text-white font-bold">{borrowedDetails?.courseCode || 'N/A'}</span></div>
+                                            <div><span className="text-slate-500 dark:text-slate-400 text-xs block">Due Date</span><span className="font-mono text-slate-800 dark:text-white font-bold">{formatDateDisplay(borrowedDetails?.dueDate) || 'N/A'}</span></div>
+                                        </div>
+                                        </div>
+
+                                        <div className="border-t border-gray-200 dark:border-white/5 pt-4">
+                                        <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-3">Renewal Options</h4>
+                                        <div className="flex items-center justify-between bg-slate-50 dark:bg-[#232433] p-3 rounded-lg border border-gray-200 dark:border-white/5">
+                                            <div>
+                                                <p className="text-xs text-slate-800 dark:text-white font-bold">Extend for 7 Days</p>
+                                                <p className="text-[10px] text-slate-500">New Due Date: <span className="text-purple-500">{formatDateDisplay(getISODate(7))}</span></p>
+                                            </div>
+                                            <button onClick={() => onRenew(book)} className="px-4 py-2 bg-purple-600/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white text-xs font-bold rounded-lg border border-purple-500/20 transition-all">Renew</button>
+                                        </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-2 pt-2">
+                                            {/* DEMO TOGGLE FOR LATE RETURN */}
+                                            <div className="flex items-center gap-2 mb-2 justify-end">
+                                                <label className="text-[10px] text-slate-400 cursor-pointer select-none">Simulate Late Return (Demo)</label>
+                                                <input type="checkbox" checked={simulateLate} onChange={(e) => setSimulateLate(e.target.checked)} className="accent-purple-600" />
+                                            </div>
+                                            
+                                            <button onClick={checkReturnStatus} className="w-full py-3 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold border border-red-500/20 transition-all">Return Book</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -1153,14 +1210,61 @@
              const [messages, setMessages] = useState([{text: "Hello! How can I help you today?", from: 'bot'}]);
              const [input, setInput] = useState("");
              
+             // --- CHATBOT KNOWLEDGE BASE ---
+             const generateResponse = (text) => {
+                const lower = text.toLowerCase();
+                
+                // Greeting
+                if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+                    return "Hello there! Welcome to PTAR Nexus. I can help you with searching books, room bookings, and checking your fine status.";
+                }
+                
+                // Search / Finding Books
+                if (lower.includes('search') || lower.includes('find') || lower.includes('book') || lower.includes('resource') || lower.includes('journal')) {
+                    return "To find books or journals, simply go to the 'Search' tab. You can find both physical copies located in the library and online digital resources from IEEE, ScienceDirect, and more.";
+                }
+                
+                // Room Booking
+                if (lower.includes('room') || lower.includes('book') || lower.includes('discussion') || lower.includes('studio')) {
+                    return "You can book discussion rooms or the studio in the 'Room Booking' tab. Currently, we have 4 Discussion Rooms and 1 Studio Room available. You can see live occupancy on the Dashboard.";
+                }
+                
+                // Digital ID / Access Card
+                if (lower.includes('id') || lower.includes('card') || lower.includes('scan') || lower.includes('access')) {
+                    return "Your Digital ID is located in the 'My Digital ID' tab. Click the card to flip it and reveal your QR code for scanning at the library entrance kiosks.";
+                }
+                
+                // Fines / Late Return / Payment
+                if (lower.includes('fine') || lower.includes('pay') || lower.includes('late') || lower.includes('return') || lower.includes('rm')) {
+                    return "If you return a book late, there is a fixed fine of RM 10.00. Don't worry, you can pay this fine directly through the app when you process the return in your profile or book details.";
+                }
+                
+                // Operating Hours
+                if (lower.includes('hour') || lower.includes('open') || lower.includes('time') || lower.includes('close')) {
+                    return "The library is open from 8:00 AM to 10:00 PM on weekdays (Mon-Fri) and 9:00 AM to 5:00 PM on weekends. During exam weeks, we extend hours until 12:00 AM.";
+                }
+                
+                // WiFi
+                if (lower.includes('wifi') || lower.includes('internet') || lower.includes('connect')) {
+                    return "Free WiFi is available throughout the library. Network Name: 'UiTM-Student'. Use your student ID and portal password to login.";
+                }
+                
+                // Default fallback
+                return "I'm not sure about that specific detail, but I can help you with Searching Books, Room Booking, Digital ID, and Fines. What would you like to know?";
+             };
+
              const send = (e) => {
                  e.preventDefault();
-                 if(!input) return;
-                 setMessages([...messages, {text: input, from: 'user'}]);
+                 if(!input.trim()) return;
+                 const userMsg = input;
+                 setMessages(prev => [...prev, {text: userMsg, from: 'user'}]);
                  setInput("");
+                 
+                 // Smart Response Delay
                  setTimeout(() => {
-                     setMessages(prev => [...prev, {text: "I can assist with book searches, room bookings, and account status.", from: 'bot'}]);
-                 }, 1000);
+                     const botResponse = generateResponse(userMsg);
+                     setMessages(prev => [...prev, {text: botResponse, from: 'bot'}]);
+                 }, 600);
              };
 
              return (
@@ -1176,11 +1280,11 @@
                                 </div>
                                 <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-gray-50 dark:bg-[#0f1016]">
                                     {messages.map((m, i) => (
-                                        <div key={i} className={`text-xs p-2 rounded-lg max-w-[80%] animate-fade-in ${m.from === 'user' ? 'bg-purple-600 text-white ml-auto' : 'bg-white dark:bg-[#232433] text-slate-800 dark:text-slate-300 shadow-sm'}`}>{m.text}</div>
+                                        <div key={i} className={`text-xs p-2 rounded-lg max-w-[85%] animate-fade-in ${m.from === 'user' ? 'bg-purple-600 text-white ml-auto' : 'bg-white dark:bg-[#232433] text-slate-800 dark:text-slate-300 shadow-sm'}`}>{m.text}</div>
                                     ))}
                                 </div>
                                 <form onSubmit={send} className="p-2 border-t border-gray-200 dark:border-white/5 flex gap-2 bg-white dark:bg-[#181926]">
-                                    <input value={input} onChange={e => setInput(e.target.value)} className="flex-1 bg-gray-100 dark:bg-[#232433] text-slate-800 dark:text-white text-xs p-2 rounded-lg border border-gray-200 dark:border-white/5 outline-none" placeholder="Type..." />
+                                    <input value={input} onChange={e => setInput(e.target.value)} className="flex-1 bg-gray-100 dark:bg-[#232433] text-slate-800 dark:text-white text-xs p-2 rounded-lg border border-gray-200 dark:border-white/5 outline-none" placeholder="Ask anything about PTAR..." />
                                     <button type="submit" className="px-3 bg-purple-600 rounded-lg text-white"><i className="fa-solid fa-paper-plane text-xs"></i></button>
                                 </form>
                             </div>
@@ -1631,6 +1735,7 @@
                         isBorrowed={!!(selectedBook && borrowedBooks[selectedBook.id])}
                         borrowedDetails={selectedBook ? borrowedBooks[selectedBook.id] : null}
                         user={user}
+                        addNotification={addNotification}
                     />
                     <BookingDetailModal room={selectedRoom} user={user} isOpen={bookingModalOpen} onClose={() => { setBookingModalOpen(false); setSelectedRoom(null); }} onConfirm={confirmBooking} />
                     <ProfileModal user={user} isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
