@@ -334,7 +334,7 @@
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i className={`fa-solid ${userType === 'student' ? 'fa-id-card' : 'fa-user-tie'} text-slate-400 dark:text-slate-500`}></i>
                                     </div>
-                                    <input type="text" required value={id} onChange={(e) => setId(e.target.value)} className="w-full bg-slate-50 dark:bg-[#232433] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors" placeholder={userType === 'student' ? "e.g. 2024441674" : "e.g. 241791"} />
+                                    <input type="text" required value={id} onChange={(e) => setId(e.target.value)} className="w-full bg-slate-50 dark:bg-[#232433] border border-gray-200 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-purple-500 transition-colors" placeholder={userType === 'student' ? "2024441674" : "241791"} />
                                 </div>
                             </div>
                             {error && (
@@ -410,13 +410,19 @@
             );
         };
 
-        // 3. DigitalID Widget - UPDATED: Removed validity date, updated text, added scanner animation
-        const DigitalIDWidget = ({ user, onScan, enableScan = true }) => {
+        // 3. DigitalID Widget - UPDATED: Added onCardClick support for Dashboard interactions
+        const DigitalIDWidget = ({ user, onScan, enableScan = true, onCardClick }) => {
             const [isFlipped, setIsFlipped] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
 
             const handleCardClick = () => {
-                if (!enableScan) return; // Prevent flip if scan disabled
+                // If scan is disabled (Dashboard mode), trigger onCardClick if provided
+                if (!enableScan) {
+                    if (onCardClick) onCardClick();
+                    return;
+                }
+                
+                // Otherwise, flip the card (My Digital ID mode)
                 setIsFlipped(!isFlipped);
             }
 
@@ -434,7 +440,7 @@
                 <div className="h-full flex flex-col gap-4 animate-fade-in">
                     {/* Access Card Container */}
                     <div 
-                        className={`relative flex-1 rounded-3xl perspective-1000 group ${enableScan ? 'cursor-pointer' : ''}`}
+                        className={`relative flex-1 rounded-3xl perspective-1000 group cursor-pointer`}
                         onClick={handleCardClick}
                     >
                         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
@@ -481,6 +487,10 @@
                                                 <p className="text-white/60 text-[10px] mb-1">Tap to Scan</p>
                                                 <i className="fa-solid fa-qrcode text-white text-xl"></i>
                                             </>
+                                        )}
+                                        {/* If scan disabled (dashboard), show click hint */}
+                                        {!enableScan && (
+                                            <p className="text-white/40 text-[9px] font-bold uppercase hover:text-white transition-colors">View Profile <i className="fa-solid fa-arrow-right ml-1"></i></p>
                                         )}
                                     </div>
                                 </div>
@@ -759,17 +769,14 @@
             );
         };
 
-        // 7. Borrow and Return Section Modal (FIXED)
+        // 7. Borrow and Return Section Modal (REFACTORED to fix static flag error)
         const BorrowReturnModal = ({ book, isOpen, onClose, onBorrow, onReturn, onRenew, isBorrowed, borrowedDetails, user }) => {
-            if (!isOpen || !book) return null;
-            const isPhysical = book.type === ResourceType.PHYSICAL;
-            const displayImage = (book.coverImage && book.coverImage !== 'placeholder') ? book.coverImage : GENERIC_COVER;
+            const [courseCode, setCourseCode] = useState('');
+            const [returnDate, setReturnDate] = useState(getISODate(7));
 
-            const [courseCode, setCourseCode] = useState(borrowedDetails?.courseCode || '');
-            const [returnDate, setReturnDate] = useState(borrowedDetails?.dueDate || getISODate(7));
-
+            // Sync effect
             useEffect(() => {
-                if(isOpen) {
+                if (isOpen && book) {
                     if (isBorrowed && borrowedDetails) {
                         setCourseCode(borrowedDetails.courseCode || '');
                         setReturnDate(borrowedDetails.dueDate || getISODate(7));
@@ -778,7 +785,12 @@
                         setReturnDate(getISODate(7));
                     }
                 }
-            }, [isOpen, isBorrowed, borrowedDetails]);
+            }, [isOpen, book, isBorrowed, borrowedDetails]);
+
+            if (!isOpen || !book) return null;
+
+            const isPhysical = book.type === ResourceType.PHYSICAL;
+            const displayImage = (book.coverImage && book.coverImage !== 'placeholder') ? book.coverImage : GENERIC_COVER;
 
             const handleBorrowSubmit = () => {
                 if(!courseCode.trim()) {
@@ -814,7 +826,6 @@
                              </div>
                         </div>
 
-                        {/* Rendering Logic Inlined to Fix Babel/React Error */}
                         {!isPhysical && (
                             <div className="space-y-4">
                                 <button onClick={() => { window.open(book.url || '#', '_blank'); onClose(); }} className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg shadow-purple-600/20">Read Now</button>
@@ -1495,7 +1506,14 @@
                                 <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 animate-fade-in">
                                     {/* Widgets Row - Responsive Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 md:gap-6 lg:h-96">
-                                        <div className="lg:col-span-3 h-64 md:h-full"><DigitalIDWidget user={user} onScan={handleScanSuccess} enableScan={false} /></div>
+                                        <div className="lg:col-span-3 h-64 md:h-full">
+                                            <DigitalIDWidget 
+                                                user={user} 
+                                                onScan={handleScanSuccess} 
+                                                enableScan={false} 
+                                                onCardClick={() => setProfileOpen(true)} 
+                                            />
+                                        </div>
                                         <div className="lg:col-span-5 h-80 md:h-full"><SmartBookingWidget rooms={rooms} onBookClick={handleRoomClick} /></div>
                                         <div className="md:col-span-2 lg:col-span-4 h-64 md:h-full"><AnalyticsWidget /></div>
                                     </div>
