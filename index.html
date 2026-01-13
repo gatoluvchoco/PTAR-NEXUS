@@ -375,7 +375,14 @@
             return (
                 <div 
                     className="flex bg-white dark:bg-[#1e2030] border border-gray-200 dark:border-white/5 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all cursor-pointer group h-36 md:h-44 hover:shadow-lg hover:shadow-purple-900/10 hover:-translate-y-1" 
-                    onClick={() => onBookClick(result)}
+                    onClick={() => {
+                        // Direct open for GLOBAL resources if clicked on card body
+                        if(result.source === SourceCategory.GLOBAL && result.url) {
+                            window.open(result.url, '_blank');
+                        } else {
+                            onBookClick(result);
+                        }
+                    }}
                     style={{ animationDelay: `${idx * 50}ms` }}
                 >
                     <div className="w-24 md:w-32 relative bg-gray-200 dark:bg-black/20 flex-shrink-0 overflow-hidden">
@@ -397,8 +404,16 @@
                                     {isBorrowed ? 'Manage Loan' : 'Borrow'}
                                 </button>
                             ) : (
-                                <button onClick={(e) => { e.stopPropagation(); onRead(result); }} className="flex-1 py-1.5 bg-purple-600/10 dark:bg-purple-600/20 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white text-[10px] md:text-xs font-medium rounded-lg transition-colors border border-purple-500/30">
-                                    Read
+                                <button onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    // Direct open for Read button
+                                    if(result.url) {
+                                        window.open(result.url, '_blank');
+                                    } else {
+                                        onRead(result);
+                                    }
+                                }} className="flex-1 py-1.5 bg-purple-600/10 dark:bg-purple-600/20 hover:bg-purple-600 text-purple-700 dark:text-purple-300 hover:text-white text-[10px] md:text-xs font-medium rounded-lg transition-colors border border-purple-500/30">
+                                    {result.source === SourceCategory.GLOBAL ? 'Open Web' : 'Read'}
                                 </button>
                             )}
                             <button className="w-8 flex items-center justify-center text-slate-400 hover:text-pink-500 bg-slate-100 dark:bg-[#2a2b3d] rounded-lg border border-gray-200 dark:border-white/5"><i className="fa-regular fa-heart text-xs md:text-sm"></i></button>
@@ -408,7 +423,7 @@
             );
         };
 
-        // 3. DigitalID Widget - UPDATED: Logic to handle no-op on dashboard and removed "View Profile"
+        // 3. DigitalID Widget
         const DigitalIDWidget = ({ user, onScan, enableScan = true }) => {
             const [isFlipped, setIsFlipped] = useState(false);
             const [isScanning, setIsScanning] = useState(false);
@@ -430,14 +445,14 @@
                 setTimeout(() => {
                     setIsScanning(false);
                     onScan(); 
-                }, 2000); // Increased duration slightly for effect
+                }, 2000);
             };
 
             return (
                 <div className="h-full flex flex-col gap-4 animate-fade-in">
-                    {/* Access Card Container */}
+                    {/* Access Card Container - Removed group class when not active to prevent hover effects */}
                     <div 
-                        className={`relative flex-1 rounded-3xl perspective-1000 group ${enableScan ? 'cursor-pointer' : 'cursor-default'}`}
+                        className={`relative flex-1 rounded-3xl perspective-1000 ${enableScan ? 'cursor-pointer group' : 'cursor-default'}`}
                         onClick={enableScan ? handleCardClick : undefined}
                     >
                         <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
@@ -495,10 +510,10 @@
                             <div className="absolute inset-0 backface-hidden rotate-y-180 w-full h-full rounded-3xl bg-slate-100 dark:bg-white border border-gray-200 shadow-2xl p-6 flex flex-col items-center justify-center text-center">
                                 <h3 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Library Entry Pass</h3>
                                 
-                                {/* QR Code Area - Interactive now with Scanning Animation */}
+                                {/* QR Code Area */}
                                 <div 
                                     onClick={handleScan}
-                                    className={`relative p-2 bg-white rounded-xl shadow-sm border border-gray-100 transition-transform active:scale-95 overflow-hidden ${isScanning ? 'ring-4 ring-purple-500/30' : 'hover:scale-105'}`}
+                                    className={`relative p-2 bg-white rounded-xl shadow-sm border border-gray-100 transition-transform active:scale-95 overflow-hidden ${isScanning ? 'ring-4 ring-purple-500/30' : (enableScan ? 'hover:scale-105' : '')}`}
                                 >
                                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${user.studentId}`} className={`w-28 h-28 ${isScanning ? 'opacity-30 blur-[1px]' : ''}`} />
                                     
@@ -522,7 +537,6 @@
                                     <p className="font-mono text-slate-800 font-bold text-lg tracking-wider">{user.studentId}</p>
                                 </div>
                                 <div className="w-full flex justify-between items-center mt-auto pt-2">
-                                     {/* Removed Valid Until Date as requested */}
                                      <span></span> 
                                      <button className="text-[10px] text-slate-400 flex items-center gap-1 hover:text-purple-600 transition-colors">
                                         <i className="fa-solid fa-rotate"></i> Flip back
@@ -550,7 +564,7 @@
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pr-1 scrollbar-hide">
                         {rooms.map((room, idx) => (
-                            <div key={room.id} className="bg-[#1e2030] border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:border-purple-500/30 transition-all group min-h-[140px]">
+                            <div key={room.id} className="relative bg-[#1e2030] border border-white/5 rounded-xl p-4 flex flex-col justify-between hover:border-purple-500/30 transition-all group min-h-[140px]">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
                                         <i className="fa-solid fa-screen-users"></i>
@@ -1222,8 +1236,7 @@
                 { id: 2, name: 'Discussion Room 2', capacity: 6, status: 'Occupied' },
                 { id: 3, name: 'Discussion Room 3', capacity: 4, status: 'Available' },
                 { id: 4, name: 'Discussion Room 4', capacity: 6, status: 'Occupied' },
-                { id: 5, name: 'Studio Room', capacity: 10, status: 'Available' },
-                { id: 6, name: 'Auditorium', capacity: 50, status: 'Available' }
+                { id: 5, name: 'Studio Room', capacity: 10, status: 'Available' }
             ]);
 
             // Theme Effect
@@ -1329,7 +1342,9 @@
                             genre: activeGenre, 
                             coverImage: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : GENERIC_COVER,
                             // Improved Summary Fallback
-                            summary: doc.first_sentence?.[0] || `An edition of ${doc.title} (${doc.first_publish_year}). Access this global resource online via Open Library.`
+                            summary: doc.first_sentence?.[0] || `An edition of ${doc.title} (${doc.first_publish_year}). Access this global resource online via Open Library.`,
+                            // GENERATED URL FOR DIRECT ACCESS
+                            url: `https://openlibrary.org${doc.key}`
                         }));
                         setOnlineBooks(mapped);
                     } catch(e) { 
@@ -1411,6 +1426,7 @@
                 setRooms(prev => prev.map(r => r.id === room.id ? {...r, status: 'Occupied'} : r));
                 setBookingModalOpen(false);
                 addNotification(`Booked ${room.name} for ${slot}`);
+                setSelectedRoom(null); // Clear selected room
             };
 
             const handleFeedbackSubmit = (type, desc) => {
@@ -1588,8 +1604,10 @@
                             )}
                             
                             {activeTab === 'id' && (
-                                <div className="max-w-sm mx-auto mt-10 md:mt-20 h-96 animate-fade-in">
-                                     <DigitalIDWidget user={user} onScan={handleScanSuccess} enableScan={true} />
+                                <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] p-6 animate-fade-in">
+                                     <div className="w-full max-w-sm h-[500px] max-h-full">
+                                        <DigitalIDWidget user={user} onScan={handleScanSuccess} enableScan={true} />
+                                     </div>
                                 </div>
                             )}
                             
@@ -1614,7 +1632,7 @@
                         borrowedDetails={selectedBook ? borrowedBooks[selectedBook.id] : null}
                         user={user}
                     />
-                    <BookingDetailModal room={selectedRoom} user={user} isOpen={bookingModalOpen} onClose={() => setBookingModalOpen(false)} onConfirm={confirmBooking} />
+                    <BookingDetailModal room={selectedRoom} user={user} isOpen={bookingModalOpen} onClose={() => { setBookingModalOpen(false); setSelectedRoom(null); }} onConfirm={confirmBooking} />
                     <ProfileModal user={user} isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
                     <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} onSubmit={handleFeedbackSubmit} />
                     
